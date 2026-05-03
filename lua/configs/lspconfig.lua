@@ -14,14 +14,43 @@ local servers = {
   "yamlls",
   "sqls",
   "bashls",
+  "clangd",
   "cmake",
   "dockerls",
   "lemminx",
   "lua_ls",
   "emmet_ls",
+  "roslyn_ls",
+  "denols",
 }
 
 vim.lsp.enable(servers)
+
+vim.lsp.config("denols", {
+  root_dir = function(bufnr, on_dir)
+    local fname = vim.api.nvim_buf_get_name(bufnr)
+    local root = vim.fs.root(fname, { "deno.json", "deno.jsonc" })
+    if root then on_dir(root) end
+  end,
+})
+
+vim.lsp.config("ts_ls", {
+  root_dir = function(bufnr, on_dir)
+    local fname = vim.api.nvim_buf_get_name(bufnr)
+    if vim.fs.root(fname, { "deno.json", "deno.jsonc" }) then return end
+    local root = vim.fs.root(fname, { "package.json", "tsconfig.json", "jsconfig.json" })
+    if root then on_dir(root) end
+  end,
+  settings = {
+    typescript = {
+      inlayHints = {
+        includeInlayParameterNameHints = "all",
+        includeInlayFunctionParameterTypeHints = true,
+        includeInlayVariableTypeHints = true,
+      },
+    },
+  },
+})
 
 -- Lua: recognize vim global
 vim.lsp.config("lua_ls", {
@@ -42,19 +71,6 @@ vim.lsp.config("rust_analyzer", {
   settings = {
     ["rust-analyzer"] = {
       checkOnSave = { command = "clippy" },
-    },
-  },
-})
-
--- TypeScript: inlay hints
-vim.lsp.config("ts_ls", {
-  settings = {
-    typescript = {
-      inlayHints = {
-        includeInlayParameterNameHints = "all",
-        includeInlayFunctionParameterTypeHints = true,
-        includeInlayVariableTypeHints = true,
-      },
     },
   },
 })
@@ -83,6 +99,24 @@ vim.lsp.config("emmet_ls", {
       javascriptreact = "html",
       typescriptreact = "html",
     },
+  },
+})
+
+-- clangd: background index, clang-tidy, IWYU header insertion
+vim.lsp.config("clangd", {
+  cmd = {
+    "clangd",
+    "--background-index",
+    "--clang-tidy",
+    "--header-insertion=iwyu",
+    "--completion-style=detailed",
+    "--function-arg-placeholders",
+    "--fallback-style=llvm",
+  },
+  init_options = {
+    usePlaceholders = true,
+    completeUnimported = true,
+    clangdFileStatus = true,
   },
 })
 
