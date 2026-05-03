@@ -17,6 +17,8 @@ local options = {
     go = { "gofmt" },
     python = { "black" },
     java = { "google-java-format" },
+    c = { "clang-format" },
+    cpp = { "clang-format" },
   },
 
   format_on_save = {

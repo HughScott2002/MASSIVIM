@@ -20,7 +20,7 @@ return {
     opts = {
       ensure_installed = {
         "typescript", "tsx", "javascript", "css", "scss", "html",
-        "rust", "go", "python", "java",
+        "rust", "go", "python", "java", "c", "cpp",
         "yaml", "json", "jsonc", "bash", "lua", "nix", "sql",
         "dockerfile", "make", "cmake", "xml",
         "markdown", "markdown_inline", "toml", "gitignore",
@@ -102,6 +102,14 @@ return {
     opts = {},
   },
 
+  -- Surround edits: cst<tag>, dst, ysiw<tag>, etc. (tag-aware via treesitter)
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    event = "VeryLazy",
+    opts = {},
+  },
+
   -- Import cost (show bundle size of JS/TS imports)
   {
     "barrett-ruth/import-cost.nvim",
@@ -173,16 +181,112 @@ return {
     end,
   },
 
-  -- Java LSP (special setup)
+  -- Java LSP (special setup) — wires java-debug + java-test bundles for nvim-dap and neotest-java
   {
     "mfussenegger/nvim-jdtls",
     ft = "java",
+    dependencies = {
+      "mfussenegger/nvim-dap",
+    },
     config = function()
       local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+      local extensions_root = "/run/current-system/sw/share/vscode/extensions"
+      local bundles = {
+        vim.fn.glob(extensions_root .. "/vscjava.vscode-java-debug/server/com.microsoft.java.debug.plugin-*.jar", true),
+      }
+      vim.list_extend(
+        bundles,
+        vim.split(vim.fn.glob(extensions_root .. "/vscjava.vscode-java-test/server/*.jar", true), "\n")
+      )
       require("jdtls").start_or_attach {
         cmd = { "jdtls", "-data", vim.fn.expand "~/.cache/jdtls/workspace/" .. project_name },
         root_dir = vim.fs.root(0, { ".git", "pom.xml", "build.gradle", "mvnw", "gradlew" }),
+        init_options = { bundles = bundles },
       }
+    end,
+  },
+
+  -- DAP (debugger)
+  {
+    "mfussenegger/nvim-dap",
+    dependencies = {
+      "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio",
+      "theHamsta/nvim-dap-virtual-text",
+    },
+    config = function()
+      local dap, dapui = require("dap"), require("dapui")
+      dapui.setup()
+      require("nvim-dap-virtual-text").setup {}
+      dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
+      dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
+      dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
+
+      vim.keymap.set("n", "<leader>db", dap.toggle_breakpoint, { desc = "DAP toggle breakpoint" })
+      vim.keymap.set("n", "<leader>dc", dap.continue, { desc = "DAP continue" })
+      vim.keymap.set("n", "<leader>di", dap.step_into, { desc = "DAP step into" })
+      vim.keymap.set("n", "<leader>do", dap.step_over, { desc = "DAP step over" })
+      vim.keymap.set("n", "<leader>dO", dap.step_out, { desc = "DAP step out" })
+      vim.keymap.set("n", "<leader>du", dapui.toggle, { desc = "DAP UI toggle" })
+    end,
+  },
+
+  -- Neotest (test runner) with Java adapter
+  {
+    "nvim-neotest/neotest",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+      "antoinemadec/FixCursorHold.nvim",
+      "rcasia/neotest-java",
+    },
+    config = function()
+      require("neotest").setup {
+        adapters = {
+          require("neotest-java") {
+            ignore_wrapper = false,
+          },
+        },
+      }
+      vim.keymap.set("n", "<leader>tn", function() require("neotest").run.run() end, { desc = "Test nearest" })
+      vim.keymap.set("n", "<leader>tf", function() require("neotest").run.run(vim.fn.expand("%")) end, { desc = "Test file" })
+      vim.keymap.set("n", "<leader>ts", function() require("neotest").summary.toggle() end, { desc = "Test summary" })
+      vim.keymap.set("n", "<leader>to", function() require("neotest").output.open { enter = true } end, { desc = "Test output" })
+    end,
+  },
+
+  -- Spring Boot Tools (STS4 LSP integration: bean nav, application.properties autocomplete)
+  {
+    "JavaHello/spring-boot.nvim",
+    ft = { "java", "yaml", "jproperties" },
+    dependencies = {
+      "mfussenegger/nvim-jdtls",
+    },
+  },
+
+  -- Overseer (run mvn/gradle tasks without leaving nvim)
+  {
+    "stevearc/overseer.nvim",
+    cmd = { "OverseerRun", "OverseerToggle", "OverseerOpen", "OverseerInfo", "OverseerBuild" },
+    opts = {},
+  },
+
+  -- Database UI (vim-dadbod)
+  {
+    "tpope/vim-dadbod",
+    cmd = { "DB" },
+    dependencies = {
+      "kristijanhusak/vim-dadbod-ui",
+      "kristijanhusak/vim-dadbod-completion",
+    },
+  },
+  {
+    "kristijanhusak/vim-dadbod-ui",
+    cmd = { "DBUI", "DBUIToggle", "DBUIAddConnection", "DBUIFindBuffer" },
+    dependencies = { "tpope/vim-dadbod" },
+    init = function()
+      vim.g.db_ui_use_nerd_fonts = 1
+      vim.g.db_ui_save_location = vim.fn.expand "~/.local/share/db_ui"
     end,
   },
 
