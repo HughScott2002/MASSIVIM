@@ -19,6 +19,7 @@ local options = {
     java = { "google-java-format" },
     c = { "clang-format" },
     cpp = { "clang-format" },
+    php = { "php_cs_fixer" },
   },
 
   format_on_save = {

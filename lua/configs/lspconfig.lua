@@ -22,6 +22,7 @@ local servers = {
   "emmet_ls",
   "roslyn_ls",
   "denols",
+  "phpactor",
 }
 
 vim.lsp.enable(servers)
