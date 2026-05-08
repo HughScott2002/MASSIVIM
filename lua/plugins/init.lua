@@ -21,6 +21,7 @@ return {
       ensure_installed = {
         "typescript", "tsx", "javascript", "css", "scss", "html",
         "rust", "go", "python", "java", "c", "cpp",
+        "php", "phpdoc",
         "yaml", "json", "jsonc", "bash", "lua", "nix", "sql",
         "dockerfile", "make", "cmake", "xml",
         "markdown", "markdown_inline", "toml", "gitignore",
