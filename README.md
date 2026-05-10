@@ -26,6 +26,77 @@ On **NixOS**, LSP servers and formatters are already in `configuration.nix`. Mas
 
 On **everything else**, `setup.sh` installs system deps, and Mason auto-installs LSPs/formatters on first launch.
 
+## WSL2 Setup
+
+WSL2 doesn't come with the same packages as a full NixOS or desktop Linux install. Extra steps:
+
+### 1. Neovim >= 0.11 (required)
+
+The config uses `vim.lsp.enable()` and `vim.lsp.config()` which require Neovim 0.11+. Most package managers ship older versions. Install via Homebrew (recommended on WSL):
+
+```bash
+brew install neovim   # gets 0.11+
+```
+
+Or via the [Neovim releases page](https://github.com/neovim/neovim/releases).
+
+### 2. Run setup.sh
+
+```bash
+~/.config/nvim/setup.sh
+```
+
+This installs core tools (ripgrep, fd, lazygit, node, etc.), luarocks, ImageMagick, and the `magick` luarock.
+
+### 3. image.nvim (luarocks + ImageMagick)
+
+image.nvim needs three things that aren't installed by default on WSL2:
+
+- **luajit** — Lua 5.1 runtime (Neovim's embedded Lua)
+- **luarocks** — Lua package manager
+- **ImageMagick** — image processing library
+- **magick** luarock — Lua bindings for ImageMagick
+
+If you're using **nix** as your package manager on WSL:
+
+```bash
+nix-env -iA nixpkgs.luajit nixpkgs.luarocks nixpkgs.imagemagick
+```
+
+Then install the magick rock. Nix puts ImageMagick's pkg-config files in the store, so you need to set `PKG_CONFIG_PATH`:
+
+```bash
+# Find MagickWand.pc
+MAGICK_PC=$(find /nix/store -name "MagickWand.pc" 2>/dev/null | head -1)
+
+# Install the rock
+PKG_CONFIG_PATH="$(dirname $MAGICK_PC):$PKG_CONFIG_PATH" luarocks --local --lua-version=5.1 install magick
+```
+
+**Make it permanent** — add to your `~/.zshrc` or `~/.bashrc`:
+
+```bash
+export PKG_CONFIG_PATH="/nix/store/<your-imagemagick-dev-hash>/lib/pkgconfig:$PKG_CONFIG_PATH"
+```
+
+If you're using **brew** or **apt** instead:
+
+```bash
+# brew
+brew install luarocks luajit imagemagick
+luarocks --local --lua-version=5.1 install magick
+
+# apt (Ubuntu/Debian)
+sudo apt install luarocks imagemagick libmagickwand-dev
+luarocks --local --lua-version=5.1 install magick
+```
+
+> **Note**: image.nvim requires a terminal with **Kitty graphics protocol** support (Kitty, WezTerm). Standard Windows Terminal / tmux will not render images.
+
+### 4. Mason installs LSPs and formatters
+
+On first launch, Mason will auto-install all LSP servers and formatters. Run `:Mason` to check progress. This can take a few minutes.
+
 ## What's Included
 
 - **Theme**: onedark, pure black background (#000000)
@@ -39,8 +110,19 @@ On **everything else**, `setup.sh` installs system deps, and Mason auto-installs
 ### NixOS
 Already handled in `configuration.nix` — ripgrep, fd, gcc, lazygit, tree-sitter, stylua, all LSP servers.
 
-### Non-NixOS
-Run `setup.sh` or manually install: neovim (>= 0.10), git, gcc, make, ripgrep, fd, lazygit, nodejs, npm, unzip, curl.
+### Non-NixOS (WSL2, Ubuntu, Arch, macOS, etc.)
+
+Run `setup.sh` or manually install:
+
+| Category | Packages |
+|----------|----------|
+| **Required** | neovim (>= 0.11), git, gcc, make, unzip, curl |
+| **Search/Navigation** | ripgrep, fd |
+| **Git** | lazygit |
+| **Node** | nodejs, npm |
+| **Treesitter** | tree-sitter-cli (via npm) |
+| **image.nvim** | luarocks, luajit, imagemagick, `magick` luarock |
+| **LSPs & Formatters** | Auto-installed by Mason on first launch |
 
 ## Credits
 
