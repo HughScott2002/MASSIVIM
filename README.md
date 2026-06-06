@@ -1,3 +1,5 @@
+<img width="1768" height="1349" alt="image" src="https://github.com/user-attachments/assets/0de2cf08-b304-43fb-a26b-ab5c66959286" />
+
 # MASSIVIM
 
 My portable NvChad config. Clone it, and it works — NixOS, WSL, Ubuntu, Arch, macOS, whatever.
