@@ -1,129 +1,128 @@
 # MASSIVIM
 
-My portable NVIM/NvChad config. Clone it, and it works — NixOS, WSL, Ubuntu, Arch, macOS, whatever.
+MASSIVIM is my portable NvChad-based Neovim config. It is tuned to work cleanly across NixOS, WSL, Ubuntu, Arch, macOS, and similar setups with minimal extra work.
 
-## HOW IT LOOKS
+## How It Looks
 
 <img width="1768" height="1349" alt="image" src="https://github.com/user-attachments/assets/0de2cf08-b304-43fb-a26b-ab5c66959286" />
 
 ## Quick Start
 
 ```bash
-# Back up existing config if needed
+# Back up any existing config
 mv ~/.config/nvim ~/.config/nvim.bak
 
-# Clone
+# Install
 git clone https://github.com/HughScott2002/MASSIVIM ~/.config/nvim
 
-# Non-NixOS only — install system deps
+# Non-NixOS only
 ~/.config/nvim/setup.sh
 
 # Launch
 nvim
 ```
 
-On **NixOS**, LSP servers and formatters are already in `configuration.nix`. Mason is disabled.
+## How It Works
 
-On **everything else**, `setup.sh` installs system deps, and Mason auto-installs LSPs/formatters on first launch.
+### NixOS
 
-## WSL2 Setup
+LSP servers and formatters are defined in `configuration.nix`, so Mason stays disabled.
 
-WSL2 doesn't come with the same packages as a full NixOS or desktop Linux install. Extra steps:
+### Everything Else
 
-### 1. Neovim >= 0.11 (required)
+Run `setup.sh` once to install system dependencies. Mason handles the editor-side tooling on first launch.
 
-The config uses `vim.lsp.enable()` and `vim.lsp.config()` which require Neovim 0.11+. Most package managers ship older versions. Install via Homebrew (recommended on WSL):
+## WSL2 Notes
+
+WSL2 needs a little extra setup because package availability is uneven.
+
+### 1. Install Neovim 0.11+
+
+This config uses `vim.lsp.enable()` and `vim.lsp.config()`, which require Neovim 0.11 or newer.
 
 ```bash
-brew install neovim   # gets 0.11+
+brew install neovim
 ```
 
-Or via the [Neovim releases page](https://github.com/neovim/neovim/releases).
+You can also install from the [Neovim releases page](https://github.com/neovim/neovim/releases).
 
-### 2. Run setup.sh
+### 2. Run the setup script
 
 ```bash
 ~/.config/nvim/setup.sh
 ```
 
-This installs core tools (ripgrep, fd, lazygit, node, etc.), luarocks, ImageMagick, and the `magick` luarock.
+This installs the usual CLI tools plus the pieces needed for `image.nvim`.
 
-### 3. image.nvim (luarocks + ImageMagick)
+### 3. Make `image.nvim` work
 
-image.nvim needs three things that aren't installed by default on WSL2:
+`image.nvim` depends on:
 
-- **luajit** — Lua 5.1 runtime (Neovim's embedded Lua)
-- **luarocks** — Lua package manager
-- **ImageMagick** — image processing library
-- **magick** luarock — Lua bindings for ImageMagick
+- `luajit`
+- `luarocks`
+- `imagemagick`
+- the `magick` rock
 
-If you're using **nix** as your package manager on WSL:
+If you use `nix` on WSL:
 
 ```bash
 nix-env -iA nixpkgs.luajit nixpkgs.luarocks nixpkgs.imagemagick
-```
-
-Then install the magick rock. Nix puts ImageMagick's pkg-config files in the store, so you need to set `PKG_CONFIG_PATH`:
-
-```bash
-# Find MagickWand.pc
 MAGICK_PC=$(find /nix/store -name "MagickWand.pc" 2>/dev/null | head -1)
-
-# Install the rock
-PKG_CONFIG_PATH="$(dirname $MAGICK_PC):$PKG_CONFIG_PATH" luarocks --local --lua-version=5.1 install magick
+PKG_CONFIG_PATH="$(dirname "$MAGICK_PC"):$PKG_CONFIG_PATH" luarocks --local --lua-version=5.1 install magick
 ```
 
-**Make it permanent** — add to your `~/.zshrc` or `~/.bashrc`:
+To keep it around, add `PKG_CONFIG_PATH` to your shell profile.
 
-```bash
-export PKG_CONFIG_PATH="/nix/store/<your-imagemagick-dev-hash>/lib/pkgconfig:$PKG_CONFIG_PATH"
-```
-
-If you're using **brew** or **apt** instead:
+If you use `brew` or `apt` instead:
 
 ```bash
 # brew
 brew install luarocks luajit imagemagick
 luarocks --local --lua-version=5.1 install magick
 
-# apt (Ubuntu/Debian)
+# apt
 sudo apt install luarocks imagemagick libmagickwand-dev
 luarocks --local --lua-version=5.1 install magick
 ```
 
-> **Note**: image.nvim requires a terminal with **Kitty graphics protocol** support (Kitty, WezTerm). Standard Windows Terminal / tmux will not render images.
+> `image.nvim` needs a terminal with Kitty graphics protocol support, such as Kitty or WezTerm.
 
-### 4. Mason installs LSPs and formatters
+## Included
 
-On first launch, Mason will auto-install all LSP servers and formatters. Run `:Mason` to check progress. This can take a few minutes.
-
-## What's Included
-
-- **Theme**: onedark, pure black background (#000000)
-- **LSP**: TypeScript, Rust, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, Nix, Tailwind, Emmet
-- **Formatters**: prettier, stylua, rustfmt, gofmt, black, google-java-format (format-on-save)
-- **Plugins**: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, import-cost, nvim-ts-autotag, colorizer, markdown-preview, kulala (REST client)
-- **Key mappings**: `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Claude Code, `<leader>fm` format, `<leader>xx` diagnostics
+- Theme: onedark with a pure black background
+- LSPs: TypeScript, Rust, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, Nix, Tailwind, Emmet
+- Formatters: prettier, stylua, rustfmt, gofmt, black, google-java-format
+- Plugins: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, import-cost, nvim-ts-autotag, colorizer, markdown-preview, kulala
+- Keymaps: `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Claude Code, `<leader>fm` format, `<leader>xx` diagnostics
 
 ## Dependencies
 
 ### NixOS
-Already handled in `configuration.nix` — ripgrep, fd, gcc, lazygit, tree-sitter, stylua, all LSP servers.
 
-### Non-NixOS (WSL2, Ubuntu, Arch, macOS, etc.)
+Already handled in `configuration.nix`: ripgrep, fd, gcc, lazygit, tree-sitter, stylua, and the LSP stack.
 
-Run `setup.sh` or manually install:
+### Non-NixOS
+
+Run `setup.sh` or install these manually:
 
 | Category | Packages |
-|----------|----------|
-| **Required** | neovim (>= 0.11), git, gcc, make, unzip, curl |
-| **Search/Navigation** | ripgrep, fd |
-| **Git** | lazygit |
-| **Node** | nodejs, npm |
-| **Treesitter** | tree-sitter-cli (via npm) |
-| **image.nvim** | luarocks, luajit, imagemagick, `magick` luarock |
-| **LSPs & Formatters** | Auto-installed by Mason on first launch |
+| --- | --- |
+| Required | `neovim` (0.11+), `git`, `gcc`, `make`, `unzip`, `curl` |
+| Search / navigation | `ripgrep`, `fd` |
+| Git | `lazygit` |
+| Node | `nodejs`, `npm` |
+| Treesitter | `tree-sitter-cli` |
+| image.nvim | `luarocks`, `luajit`, `imagemagick`, `magick` |
+| LSPs and formatters | Installed automatically by Mason |
 
 ## Credits
 
-Built on [NvChad](https://github.com/NvChad/NvChad) v2.5.
+This repo provides the config, keymaps, setup scripts, and platform glue.
+
+Upstream pieces:
+
+- [NvChad](https://github.com/NvChad/NvChad) v2.5
+- [mason.nvim](https://github.com/williamboman/mason.nvim) for LSP and formatter installs on non-NixOS systems
+- [lazy.nvim](https://github.com/folke/lazy.nvim) for plugin management
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) for syntax and parsing
+- [image.nvim](https://github.com/3rd/image.nvim) for inline image support
