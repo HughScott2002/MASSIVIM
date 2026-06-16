@@ -58,8 +58,19 @@ M.mason = {
     "prettier",
     "black",
     "google-java-format",
-    "rustfmt",
     "gofumpt",
+
+    -- WSL-only: installed via Mason on non-NixOS
+    "zls",
+    "clangd",
+    "deno",
+    "phpactor",
+    "nil",
+    "clang-format",
+    "php-cs-fixer",
+    -- roslyn_ls (C#) requires .NET SDK — install manually on WSL
+    -- zigfmt (conform formatter) needs `zig` binary — install manually on WSL
+    -- rustfmt comes with rustup, not Mason
   },
 }
 

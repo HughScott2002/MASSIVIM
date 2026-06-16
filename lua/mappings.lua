@@ -66,9 +66,19 @@ end, { desc = "Format file" })
 map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- Claude Code
+-- map("n", "<leader>cc", function()
+--  require("nvchad.term").toggle { pos = "float", id = "claudeCode", cmd = "claude" }
+-- end, { desc = "Toggle Claude Code" })
+
+-- Codex
 map("n", "<leader>cc", function()
-  require("nvchad.term").toggle { pos = "float", id = "claudeCode", cmd = "claude" }
-end, { desc = "Toggle Claude Code" })
+  require("nvchad.term").toggle { pos = "float", id = "codex", cmd = "codex" }
+end, { desc = "Toggle Codex" })
+
+-- Openrouter
+map("n", "<leader>co", function()
+  require("nvchad.term").toggle { pos = "float", id = "opencode", cmd = "opencode" }
+end, { desc = "Toggle Opencode" })
 
 -- Terminal
 map("n", "<leader>tt", function()

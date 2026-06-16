@@ -8,6 +8,7 @@ local servers = {
   "ts_ls",
   "tailwindcss",
   "gopls",
+  "zls",
   "pyright",
   "rust_analyzer",
   "nil_ls",
@@ -23,6 +24,7 @@ local servers = {
   "roslyn_ls",
   "denols",
   "phpactor",
+  -- roslyn_ls requires .NET SDK (install manually on WSL)
 }
 
 vim.lsp.enable(servers)

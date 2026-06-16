@@ -12,6 +12,46 @@ echo "=== MASSIVIM Setup ==="
 echo "Installing dependencies for non-NixOS systems..."
 echo ""
 
+require_nvim_011() {
+  if ! command -v nvim &>/dev/null; then
+    echo "ERROR: nvim was not found after dependency installation." >&2
+    exit 1
+  fi
+
+  local version
+  version=$(nvim --version | sed -n '1s/^NVIM v//p' | cut -d- -f1)
+
+  local major minor patch
+  IFS=. read -r major minor patch <<< "$version"
+  major=${major:-0}
+  minor=${minor:-0}
+
+  if ! [[ "$major" =~ ^[0-9]+$ && "$minor" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: MASSIVIM requires Neovim 0.11 or newer, found ${version:-unknown}." >&2
+    echo "Install a newer Neovim release, then rerun setup.sh." >&2
+    exit 1
+  fi
+
+  if [ "$major" -eq 0 ] && [ "$minor" -lt 11 ]; then
+    echo "ERROR: MASSIVIM requires Neovim 0.11 or newer, found ${version:-unknown}." >&2
+    echo "Install a newer Neovim release, then rerun setup.sh." >&2
+    exit 1
+  fi
+}
+
+ensure_fd_command() {
+  if command -v fd &>/dev/null; then
+    return
+  fi
+
+  if command -v fdfind &>/dev/null; then
+    mkdir -p "$HOME/.local/bin"
+    ln -sfn "$(command -v fdfind)" "$HOME/.local/bin/fd"
+    echo "-> Created ~/.local/bin/fd shim for Debian/Ubuntu fd-find package"
+    echo "   Make sure ~/.local/bin is on your PATH before launching nvim."
+  fi
+}
+
 # Detect package manager
 if command -v brew &>/dev/null; then
   PKG="brew"
@@ -66,6 +106,9 @@ case $PKG in
     install_pkg neovim git gcc gnumake ripgrep fd lazygit nodejs luarocks luajit imagemagick
     ;;
 esac
+
+require_nvim_011
+ensure_fd_command
 
 # lazygit
 if ! command -v lazygit &>/dev/null; then
