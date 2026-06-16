@@ -14,6 +14,7 @@ local options = {
     markdown = { "prettier" },
     graphql = { "prettier" },
     rust = { "rustfmt" },
+    zig = { "zigfmt" },
     go = { "gofmt" },
     python = { "black" },
     java = { "google-java-format" },

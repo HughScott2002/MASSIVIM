@@ -1,26 +1,170 @@
 # MASSIVIM
 
-MASSIVIM is my portable NvChad-based Neovim config. It is tuned to work cleanly across NixOS, WSL, Ubuntu, Arch, macOS, and similar setups with minimal extra work.
+[![NixOS](https://img.shields.io/badge/NixOS-ready-5277C3?logo=nixos&logoColor=white)](https://nixos.org/)
+[![Neovim](https://img.shields.io/badge/Neovim-0.11+-57A143?logo=neovim&logoColor=white)](https://neovim.io/)
+[![NvChad](https://img.shields.io/badge/NvChad-v2.5-6D57A8)](https://nvchad.com/)
+[![Lua](https://img.shields.io/badge/Lua-config-2C2D72?logo=lua&logoColor=white)](https://www.lua.org/)
 
-## How It Looks
+Portable NvChad config. NixOS first. Works elsewhere with Neovim 0.11+.
+
+## Screenshot
 
 <img width="1768" height="1349" alt="image" src="https://github.com/user-attachments/assets/0de2cf08-b304-43fb-a26b-ab5c66959286" />
 
+## AI Install Prompts
+
+### NixOS
+
+```text
+Install MASSIVIM on NixOS.
+
+Repo: https://github.com/HughScott2002/MASSIVIM
+Path: ~/.config/nvim
+
+Edit configuration.nix with the README NixOS package block. Use system packages for LSPs and formatters. Mason is disabled on NixOS.
+
+Keep AI CLIs separate. Use nixos-unstable only for packages shown as unstable.*.
+
+Before finishing, check OS package names, Neovim version, PATH, language runtimes, and NixOS vs Mason behavior. Fix launch blockers.
+
+Back up ~/.config/nvim, rebuild with sudo nixos-rebuild switch, clone MASSIVIM, then open nvim once.
+```
+
+### Non-NixOS
+
+```text
+Install MASSIVIM.
+
+Repo: https://github.com/HughScott2002/MASSIVIM
+Path: ~/.config/nvim
+
+Back up ~/.config/nvim. Clone the repo. Run ~/.config/nvim/setup.sh. Open nvim once so lazy.nvim and Mason install tools.
+
+Install needed runtimes yourself: Rust/rustfmt, Zig/zigfmt, Go/gofmt, Java, .NET, PHP, and Deno.
+
+Before finishing, check OS package names, Neovim version, PATH, language runtimes, and Mason tools that still need system runtimes. Fix launch blockers.
+```
+
 ## Quick Start
 
+> Warning: NixOS is the main target. Non-NixOS needs Neovim 0.11+ and some runtimes outside Mason.
+
+### NixOS
+
+Add this to `configuration.nix`:
+
+```nix
+{ pkgs, ... }:
+
+let
+  unstable = import <nixos-unstable> {
+    config.allowUnfree = true;
+  };
+in
+{
+  environment.systemPackages = with pkgs; [
+    # Neovim and plugin tools
+    neovim
+    git
+    gcc
+    gnumake
+    ripgrep
+    fd
+    lazygit
+    unstable.nodejs
+    unzip
+    curl
+    tree-sitter
+    jdk21_headless
+    dotnet-sdk_10
+
+    # LSPs
+    nil
+    lua-language-server
+    typescript-language-server
+    vscode-langservers-extracted
+    tailwindcss-language-server
+    emmet-ls
+    pyright
+    gopls
+    rust-analyzer
+    unstable.zls
+    bash-language-server
+    dockerfile-language-server
+    yaml-language-server
+    sqls
+    clang-tools
+    cmake-language-server
+    lemminx
+    deno
+    phpactor
+    jdt-language-server
+    roslyn-ls
+
+    # Java debug/test
+    vscode-extensions.vscjava.vscode-java-debug
+    vscode-extensions.vscjava.vscode-java-test
+
+    # Formatters
+    stylua
+    black
+    prettier
+    google-java-format
+    rustfmt
+    unstable.zig
+    unstable.go
+    php84Packages.php-cs-fixer
+  ];
+}
+```
+
+Add unstable if needed:
+
 ```bash
-# Back up any existing config
+sudo nix-channel --add https://nixos.org/channels/nixos-unstable nixos-unstable
+sudo nix-channel --update
+```
+
+Install:
+
+```bash
+sudo nixos-rebuild switch
 mv ~/.config/nvim ~/.config/nvim.bak
-
-# Install
 git clone https://github.com/HughScott2002/MASSIVIM ~/.config/nvim
-
-# Non-NixOS only
-~/.config/nvim/setup.sh
-
-# Launch
 nvim
 ```
+
+`unstable.*` only uses `nixos-unstable` for that package.
+
+### Optional AI CLIs
+
+```nix
+{ pkgs, ... }:
+
+let
+  unstable = import <nixos-unstable> {
+    config.allowUnfree = true;
+  };
+in
+{
+  environment.systemPackages = with pkgs; [
+    unstable.codex
+    unstable.opencode
+    unstable.claude-code
+  ];
+}
+```
+
+### Non-NixOS
+
+```bash
+mv ~/.config/nvim ~/.config/nvim.bak
+git clone https://github.com/HughScott2002/MASSIVIM ~/.config/nvim
+~/.config/nvim/setup.sh
+nvim
+```
+
+Manual runtimes: Rust/rustfmt, Zig/zigfmt, Go/gofmt, Java, .NET, PHP, Deno.
 
 ## How It Works
 
@@ -89,31 +233,11 @@ luarocks --local --lua-version=5.1 install magick
 
 ## Included
 
-- Theme: onedark with a pure black background
-- LSPs: TypeScript, Rust, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, Nix, Tailwind, Emmet
-- Formatters: prettier, stylua, rustfmt, gofmt, black, google-java-format
+- Theme: onedark, black background
+- LSP: TS, Deno, Rust, Zig, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, C/C++, CMake, XML, Nix, PHP, C#, Tailwind, Emmet
+- Formatters: prettier, stylua, rustfmt, zigfmt, gofmt, black, google-java-format, clang-format, php-cs-fixer
 - Plugins: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, import-cost, nvim-ts-autotag, colorizer, markdown-preview, kulala
-- Keymaps: `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Claude Code, `<leader>fm` format, `<leader>xx` diagnostics
-
-## Dependencies
-
-### NixOS
-
-Already handled in `configuration.nix`: ripgrep, fd, gcc, lazygit, tree-sitter, stylua, and the LSP stack.
-
-### Non-NixOS
-
-Run `setup.sh` or install these manually:
-
-| Category | Packages |
-| --- | --- |
-| Required | `neovim` (0.11+), `git`, `gcc`, `make`, `unzip`, `curl` |
-| Search / navigation | `ripgrep`, `fd` |
-| Git | `lazygit` |
-| Node | `nodejs`, `npm` |
-| Treesitter | `tree-sitter-cli` |
-| image.nvim | `luarocks`, `luajit`, `imagemagick`, `magick` |
-| LSPs and formatters | Installed automatically by Mason |
+- Keymaps: `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Codex, `<leader>co` Opencode, `<leader>fm` format, `<leader>xx` diagnostics
 
 ## Credits
 

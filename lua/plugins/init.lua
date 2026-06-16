@@ -20,7 +20,7 @@ return {
     opts = {
       ensure_installed = {
         "typescript", "tsx", "javascript", "css", "scss", "html",
-        "rust", "go", "python", "java", "c", "cpp",
+        "rust", "zig", "go", "python", "java", "c", "cpp",
         "php", "phpdoc",
         "yaml", "json", "jsonc", "bash", "lua", "nix", "sql",
         "dockerfile", "make", "cmake", "xml",
@@ -178,7 +178,7 @@ return {
   {
     "hrsh7th/nvim-cmp",
     opts = function(_, opts)
-      table.insert(opts.sources, { name = "path" })
+      table.insert(opts.sources or {}, { name = "path" })
     end,
   },
 
@@ -215,20 +215,45 @@ return {
       "nvim-neotest/nvim-nio",
       "theHamsta/nvim-dap-virtual-text",
     },
+    keys = {
+      { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "DAP toggle breakpoint" },
+      { "<leader>dc", function() require("dap").continue() end, desc = "DAP continue" },
+      { "<leader>di", function() require("dap").step_into() end, desc = "DAP step into" },
+      { "<leader>do", function() require("dap").step_over() end, desc = "DAP step over" },
+      { "<leader>dO", function() require("dap").step_out() end, desc = "DAP step out" },
+      { "<leader>du", function() require("dapui").toggle() end, desc = "DAP UI toggle" },
+    },
     config = function()
       local dap, dapui = require("dap"), require("dapui")
+      dap.adapters.lldb = {
+        type = "executable",
+        command = "lldb-dap",
+        name = "lldb",
+      }
+
+      dap.configurations.rust = {
+        {
+          name = "Launch Rust binary",
+          type = "lldb",
+          request = "launch",
+          program = function()
+            return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/target/debug/", "file")
+          end,
+          cwd = "${workspaceFolder}",
+          stopOnEntry = false,
+        },
+      }
+
+      -- Alternative Rust adapter if you want to switch later:
+      -- CodeLLDB generally has nicer Rust visualizers, but requires installing
+      -- the codelldb adapter separately.
+
       dapui.setup()
       require("nvim-dap-virtual-text").setup {}
       dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
       dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
       dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
 
-      vim.keymap.set("n", "<leader>db", dap.toggle_breakpoint, { desc = "DAP toggle breakpoint" })
-      vim.keymap.set("n", "<leader>dc", dap.continue, { desc = "DAP continue" })
-      vim.keymap.set("n", "<leader>di", dap.step_into, { desc = "DAP step into" })
-      vim.keymap.set("n", "<leader>do", dap.step_over, { desc = "DAP step over" })
-      vim.keymap.set("n", "<leader>dO", dap.step_out, { desc = "DAP step out" })
-      vim.keymap.set("n", "<leader>du", dapui.toggle, { desc = "DAP UI toggle" })
     end,
   },
 
@@ -238,7 +263,6 @@ return {
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
-      "antoinemadec/FixCursorHold.nvim",
       "rcasia/neotest-java",
     },
     config = function()
@@ -320,7 +344,7 @@ return {
       max_width_window_percentage = nil,
       max_height_window_percentage = 50,
       window_overlap_clear_enabled = true,
-      window_overlap_clear_ft_ignore = { "cmp_menu", "cmp_docs", "" },
+      window_overlap_clear_ft_ignore = { "cmp_menu", "cmp_docs" },
       editor_only_render_when_focused = false,
       tmux_show_only_in_active_window = true,
       hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif", "*.svg", "*.bmp", "*.tiff", "*.ico" },
