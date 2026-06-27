@@ -231,6 +231,16 @@ luarocks --local --lua-version=5.1 install magick
 
 > `image.nvim` needs a terminal with Kitty graphics protocol support, such as Kitty or WezTerm.
 
+If you use tmux (>= 3.3), add this to `~/.tmux.conf`:
+
+```tmux
+set -gq allow-passthrough on
+set -g visual-activity off
+set-option -g focus-events on
+```
+
+Without that, MASSIVIM now disables `image.nvim` and shows a warning instead of crashing on startup.
+
 ## Included
 
 - Theme: onedark, black background
