@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.0 — 2026-06-27
+
+### Added
+
+- `lua/configs/lspconfig.lua`: Added `K` hover mapping for LSP buffers so Rust and other LSPs can show inferred type/info on demand.
+
 ## v1.1.0 — 2026-06-16
 
 ### Fixed
