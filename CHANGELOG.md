@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.0 — 2026-06-27
+
+### Added
+
+- Inline inlay hint toggles: `<leader>ih` toggles hints for the current LSP buffer and `<leader>iH` toggles them globally for the session.
+
 ## v1.2.0 — 2026-06-27
 
 ### Added

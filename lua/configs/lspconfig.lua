@@ -1,10 +1,38 @@
 require("nvchad.configs.lspconfig").defaults()
 
+local inlay_hint_method = vim.lsp.protocol.Methods.textDocument_inlayHint
+
+local function has_inlay_hints(bufnr)
+  return not vim.tbl_isempty(vim.lsp.get_clients {
+    bufnr = bufnr,
+    method = inlay_hint_method,
+  })
+end
+
+local function toggle_buffer_inlay_hints(bufnr)
+  if not has_inlay_hints(bufnr) then
+    vim.notify("No inlay hints available for this buffer", vim.log.levels.INFO)
+    return
+  end
+
+  vim.lsp.inlay_hint.enable(
+    not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr },
+    { bufnr = bufnr }
+  )
+end
+
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
     vim.keymap.set("n", "K", vim.lsp.buf.hover, {
       buffer = args.buf,
       desc = "LSP Hover",
+    })
+
+    vim.keymap.set("n", "<leader>ih", function()
+      toggle_buffer_inlay_hints(args.buf)
+    end, {
+      buffer = args.buf,
+      desc = "Toggle inlay hints in buffer",
     })
   end,
 })
