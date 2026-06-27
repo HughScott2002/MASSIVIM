@@ -322,32 +322,52 @@ return {
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
     },
-    opts = {
-      backend = "kitty",
-      processor = "magick_rock",
-      integrations = {
-        markdown = {
-          enabled = true,
-          clear_in_insert_mode = false,
-          download_remote_images = true,
-          only_render_image_at_cursor = false,
-          floating_windows = false,
-          filetypes = { "markdown", "vimwiki" },
+    config = function()
+      local opts = {
+        backend = "kitty",
+        processor = "magick_rock",
+        integrations = {
+          markdown = {
+            enabled = true,
+            clear_in_insert_mode = false,
+            download_remote_images = true,
+            only_render_image_at_cursor = false,
+            floating_windows = false,
+            filetypes = { "markdown", "vimwiki" },
+          },
+          neorg = { enabled = false },
+          typst = { enabled = false },
+          html = { enabled = false },
+          css = { enabled = false },
         },
-        neorg = { enabled = false },
-        typst = { enabled = false },
-        html = { enabled = false },
-        css = { enabled = false },
-      },
-      max_width = nil,
-      max_height = nil,
-      max_width_window_percentage = nil,
-      max_height_window_percentage = 50,
-      window_overlap_clear_enabled = true,
-      window_overlap_clear_ft_ignore = { "cmp_menu", "cmp_docs" },
-      editor_only_render_when_focused = false,
-      tmux_show_only_in_active_window = true,
-      hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif", "*.svg", "*.bmp", "*.tiff", "*.ico" },
-    },
+        max_width = nil,
+        max_height = nil,
+        max_width_window_percentage = nil,
+        max_height_window_percentage = 50,
+        window_overlap_clear_enabled = true,
+        window_overlap_clear_ft_ignore = { "cmp_menu", "cmp_docs" },
+        editor_only_render_when_focused = false,
+        tmux_show_only_in_active_window = true,
+        hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif", "*.svg", "*.bmp", "*.tiff", "*.ico" },
+      }
+
+      if vim.env.TMUX and vim.env.TMUX ~= "" then
+        local allow_passthrough = vim.trim(vim.fn.system { "tmux", "show", "-Apv", "allow-passthrough" })
+        if vim.v.shell_error ~= 0 or allow_passthrough ~= "on" then
+          vim.schedule(function()
+            vim.notify(
+              "image.nvim disabled in tmux. Enable passthrough in ~/.tmux.conf:\n"
+                .. "set -gq allow-passthrough on\n"
+                .. "set -g visual-activity off\n"
+                .. "set-option -g focus-events on",
+              vim.log.levels.WARN
+            )
+          end)
+          return
+        end
+      end
+
+      require("image").setup(opts)
+    end,
   },
 }

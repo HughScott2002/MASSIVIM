@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.1 — 2026-06-27
+
+### Fixed
+
+- `image.nvim`: disable inline image setup in tmux when `allow-passthrough` is missing, and show a warning instead of crashing on startup.
+
 ## v1.3.0 — 2026-06-27
 
 ### Added
