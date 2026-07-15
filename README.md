@@ -49,6 +49,8 @@ Before finishing, check OS package names, Neovim version, PATH, language runtime
 
 > Warning: NixOS is the main target. Non-NixOS needs Neovim 0.11+ and some runtimes outside Mason.
 
+Icons need a [Nerd Font](https://www.nerdfonts.com) set in your terminal on all platforms.
+
 ### NixOS
 
 Add this to `configuration.nix`:
