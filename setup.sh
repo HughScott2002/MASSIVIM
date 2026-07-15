@@ -85,7 +85,7 @@ install_pkg() {
 case $PKG in
   apt)
     sudo apt update
-    install_pkg git gcc make ripgrep fd-find nodejs npm unzip curl luarocks imagemagick libmagickwand-dev
+    install_pkg git gcc make ripgrep fd-find nodejs npm unzip curl luarocks imagemagick libmagickwand-dev python3 python3-venv lldb
     # apt neovim is usually too old — check version
     if ! command -v nvim &>/dev/null || [[ "$(nvim --version | head -1 | grep -oP '\d+\.\d+')" < "0.11" ]]; then
       echo "-> neovim >= 0.11 required. apt version is too old."
@@ -93,17 +93,18 @@ case $PKG in
     fi
     ;;
   dnf)
-    install_pkg neovim git gcc make ripgrep fd-find nodejs npm unzip curl luarocks ImageMagick ImageMagick-devel
+    install_pkg neovim git gcc make ripgrep fd-find nodejs npm unzip curl luarocks ImageMagick ImageMagick-devel python3 lldb
     ;;
   pacman)
-    install_pkg neovim git gcc make ripgrep fd nodejs npm unzip curl luarocks imagemagick
+    install_pkg neovim git gcc make ripgrep fd nodejs npm unzip curl luarocks imagemagick python lldb
     ;;
   brew)
-    install_pkg neovim git gcc make ripgrep fd node unzip curl luarocks luajit imagemagick
+    install_pkg neovim git gcc make ripgrep fd node unzip curl luarocks luajit imagemagick python
+    # lldb-dap (Rust/C/C++ debugging) comes from llvm on brew systems — see runtime check below
     ;;
   nix)
     echo "-> Installing via nix-env..."
-    install_pkg neovim git gcc gnumake ripgrep fd lazygit nodejs luarocks luajit imagemagick
+    install_pkg neovim git gcc gnumake ripgrep fd lazygit nodejs luarocks luajit imagemagick python3 lldb
     ;;
 esac
 
@@ -128,10 +129,16 @@ if ! command -v lazygit &>/dev/null; then
   esac
 fi
 
-# tree-sitter CLI
+# tree-sitter CLI (required: nvim-treesitter's main branch compiles parsers with it)
 if ! command -v tree-sitter &>/dev/null; then
   echo "-> Installing tree-sitter CLI via npm..."
-  sudo npm install -g tree-sitter-cli
+  # Only use sudo when the npm global prefix isn't user-writable (brew/nvm setups don't need it)
+  NPM_PREFIX=$(npm config get prefix 2>/dev/null || echo /usr/local)
+  if [ -w "$NPM_PREFIX/lib" ] || [ -w "$NPM_PREFIX" ]; then
+    npm install -g tree-sitter-cli
+  else
+    sudo npm install -g tree-sitter-cli
+  fi
 fi
 
 # magick luarock (for image.nvim)
@@ -155,10 +162,43 @@ else
   echo "   luarocks not found — skipping. image.nvim will not work."
 fi
 
+# Pre-install plugins and treesitter parsers so the first real launch is ready to go.
+# Parser compilation covers ~35 grammars and can take a few minutes.
+echo ""
+echo "-> Bootstrapping Neovim plugins and treesitter parsers (headless, may take a few minutes)..."
+if nvim --headless "+Lazy! sync" \
+  "+lua pcall(function() local p = require('lazy.core.config').plugins['nvim-treesitter'] local o = require('lazy.core.plugin').values(p, 'opts', false) require('nvim-treesitter').install(o.ensure_installed):wait(900000) end)" \
+  +qa; then
+  echo "   Plugins and parsers installed."
+else
+  echo "   Headless bootstrap failed — plugins and parsers will install on first nvim launch instead."
+fi
+
+echo ""
+echo "=== Runtime check ==="
+echo "Language runtimes are not installed by this script. Missing ones only limit that language:"
+runtime_check() {
+  if command -v "$1" &>/dev/null; then
+    printf "  [ok] %s\n" "$1"
+  else
+    printf "  [--] %-10s %s\n" "$1" "$2"
+  fi
+}
+runtime_check go "Go: gopls, sqls, gofmt"
+runtime_check python3 "Python: black"
+runtime_check java "Java: jdtls, google-java-format (JDK 21+)"
+runtime_check php "PHP: phpactor, php-cs-fixer"
+runtime_check dotnet "C#: roslyn LSP"
+runtime_check zig "Zig: zls, zigfmt"
+runtime_check cargo "Rust: rustfmt via rustup (rust-analyzer comes from Mason)"
+runtime_check deno "Deno: denols (also installable via :Mason)"
+runtime_check lldb-dap "Debugging: Rust/C/C++ DAP (apt/dnf/pacman: lldb, brew: llvm)"
+
 echo ""
 echo "=== Done! ==="
-echo "Open nvim and Mason will auto-install LSP servers and formatters."
+echo "Open nvim — Mason auto-installs LSP servers and formatters on first launch."
 echo "Run :Mason to check progress."
 echo ""
 echo "NOTE: image.nvim requires a terminal with Kitty graphics protocol support"
 echo "      (Kitty, WezTerm, or compatible). It will not render images in other terminals."
+echo "NOTE: icons need a Nerd Font (https://www.nerdfonts.com) set in your terminal."

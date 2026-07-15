@@ -31,6 +31,19 @@ return {
       highlight = { enable = true },
       indent = { enable = true },
     },
+    config = function(_, opts)
+      require("nvim-treesitter").setup(opts)
+      -- The main branch only installs parsers via the build hook; if that ever
+      -- fails (e.g. tree-sitter CLI missing at install time), install the
+      -- missing ones on startup so highlighting self-heals on both platforms.
+      local installed = require("nvim-treesitter").get_installed "parsers"
+      local missing = vim.tbl_filter(function(lang)
+        return not vim.tbl_contains(installed, lang)
+      end, opts.ensure_installed)
+      if #missing > 0 then
+        require("nvim-treesitter").install(missing)
+      end
+    end,
   },
 
   -- Diffview (git diff viewer)
@@ -114,7 +127,8 @@ return {
   -- Import cost (show bundle size of JS/TS imports)
   {
     "barrett-ruth/import-cost.nvim",
-    build = "sh scripts/install.sh pnpm",
+    -- npm is the only package manager guaranteed on both NixOS and setup.sh systems
+    build = "sh scripts/install.sh npm",
     ft = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
     config = function() end,
   },
@@ -191,14 +205,23 @@ return {
     },
     config = function()
       local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+      -- java-debug/java-test bundles ship as system vscode extensions on NixOS;
+      -- on other systems the path doesn't exist and jdtls runs without them
       local extensions_root = "/run/current-system/sw/share/vscode/extensions"
-      local bundles = {
-        vim.fn.glob(extensions_root .. "/vscjava.vscode-java-debug/server/com.microsoft.java.debug.plugin-*.jar", true),
-      }
-      vim.list_extend(
-        bundles,
-        vim.split(vim.fn.glob(extensions_root .. "/vscjava.vscode-java-test/server/*.jar", true), "\n")
-      )
+      local bundles = {}
+      if vim.uv.fs_stat(extensions_root) then
+        table.insert(
+          bundles,
+          vim.fn.glob(extensions_root .. "/vscjava.vscode-java-debug/server/com.microsoft.java.debug.plugin-*.jar", true)
+        )
+        vim.list_extend(
+          bundles,
+          vim.split(vim.fn.glob(extensions_root .. "/vscjava.vscode-java-test/server/*.jar", true), "\n")
+        )
+        bundles = vim.tbl_filter(function(b)
+          return b ~= ""
+        end, bundles)
+      end
       require("jdtls").start_or_attach {
         cmd = { "jdtls", "-data", vim.fn.expand "~/.cache/jdtls/workspace/" .. project_name },
         root_dir = vim.fs.root(0, { ".git", "pom.xml", "build.gradle", "mvnw", "gradlew" }),

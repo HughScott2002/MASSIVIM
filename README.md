@@ -38,9 +38,9 @@ Install MASSIVIM.
 Repo: https://github.com/HughScott2002/MASSIVIM
 Path: ~/.config/nvim
 
-Back up ~/.config/nvim. Clone the repo. Run ~/.config/nvim/setup.sh. Open nvim once so lazy.nvim and Mason install tools.
+Back up ~/.config/nvim. Clone the repo. Run ~/.config/nvim/setup.sh (it also pre-installs plugins and treesitter parsers). Open nvim once so Mason auto-installs LSPs and formatters.
 
-Install needed runtimes yourself: Rust/rustfmt, Zig/zigfmt, Go/gofmt, Java, .NET, PHP, and Deno.
+Install needed runtimes yourself: Rust/rustfmt, Zig/zigfmt, Go/gofmt, Java, .NET, and PHP. setup.sh prints a runtime check at the end showing what's missing.
 
 Before finishing, check OS package names, Neovim version, PATH, language runtimes, and Mason tools that still need system runtimes. Fix launch blockers.
 ```
@@ -105,6 +105,9 @@ in
     vscode-extensions.vscjava.vscode-java-debug
     vscode-extensions.vscjava.vscode-java-test
 
+    # Debugger (lldb-dap for Rust/C/C++ DAP)
+    lldb
+
     # Formatters
     stylua
     black
@@ -164,7 +167,7 @@ git clone https://github.com/HughScott2002/MASSIVIM ~/.config/nvim
 nvim
 ```
 
-Manual runtimes: Rust/rustfmt, Zig/zigfmt, Go/gofmt, Java, .NET, PHP, Deno.
+Manual runtimes: Rust/rustfmt, Zig/zigfmt, Go/gofmt, Java, .NET, PHP. `setup.sh` prints a runtime check at the end showing what's missing.
 
 ## How It Works
 
@@ -174,7 +177,7 @@ LSP servers and formatters are defined in `configuration.nix`, so Mason stays di
 
 ### Everything Else
 
-Run `setup.sh` once to install system dependencies. Mason handles the editor-side tooling on first launch.
+Run `setup.sh` once — it installs system dependencies and pre-installs plugins plus treesitter parsers. On first launch Mason auto-installs the LSPs and formatters (and keeps retrying missing ones on later launches, so tools appear once their language runtime is installed).
 
 ## WSL2 Notes
 

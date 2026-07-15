@@ -28,6 +28,28 @@ autocmd("TextYankPost", {
   end,
 })
 
+-- Auto-install missing Mason packages on non-NixOS systems.
+-- On NixOS the pkgs list is empty (tools come from configuration.nix), so this never fires there.
+-- Re-runs on every launch until everything is installed, so it also self-heals
+-- once a missing language runtime (go, python3, java, php, ...) is added.
+if vim.fn.filereadable "/etc/NIXOS" == 0 then
+  autocmd("User", {
+    pattern = "VeryLazy",
+    once = true,
+    callback = function()
+      local pkg_root = vim.fn.stdpath "data" .. "/mason/packages/"
+      for _, pkg in ipairs(require("nvconfig").mason.pkgs) do
+        local name = pkg:match "^[^@]+"
+        if vim.fn.isdirectory(pkg_root .. name) == 0 then
+          vim.notify("Mason: installing missing LSPs/formatters...", vim.log.levels.INFO)
+          require("nvchad.mason").install_all()
+          return
+        end
+      end
+    end,
+  })
+end
+
 -- Strip trailing whitespace on save
 autocmd("BufWritePre", {
   pattern = "*",

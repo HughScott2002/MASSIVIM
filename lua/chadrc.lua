@@ -68,6 +68,7 @@ M.mason = {
     "nil",
     "clang-format",
     "php-cs-fixer",
+    "jdtls", -- needs a Java 21+ runtime on PATH
     -- roslyn_ls (C#) requires .NET SDK — install manually on WSL
     -- zigfmt (conform formatter) needs `zig` binary — install manually on WSL
     -- rustfmt comes with rustup, not Mason
