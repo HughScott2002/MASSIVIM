@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.3.1 — 2026-06-27
+
+### Fixed
+
+- `image.nvim`: disable inline image setup in tmux when `allow-passthrough` is missing, and show a warning instead of crashing on startup.
+
+## v1.3.0 — 2026-06-27
+
+### Added
+
+- Inline inlay hint toggles: `<leader>ih` toggles hints for the current LSP buffer and `<leader>iH` toggles them globally for the session.
+
+## v1.2.0 — 2026-06-27
+
+### Added
+
+- `lua/configs/lspconfig.lua`: Added `K` hover mapping for LSP buffers so Rust and other LSPs can show inferred type/info on demand.
+
 ## v1.1.0 — 2026-06-16
 
 ### Fixed

@@ -236,13 +236,23 @@ luarocks --local --lua-version=5.1 install magick
 
 > `image.nvim` needs a terminal with Kitty graphics protocol support, such as Kitty or WezTerm.
 
+If you use tmux (>= 3.3), add this to `~/.tmux.conf`:
+
+```tmux
+set -gq allow-passthrough on
+set -g visual-activity off
+set-option -g focus-events on
+```
+
+Without that, MASSIVIM now disables `image.nvim` and shows a warning instead of crashing on startup.
+
 ## Included
 
 - Theme: onedark, black background
 - LSP: TS, Deno, Rust, Zig, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, C/C++, CMake, XML, Nix, PHP, C#, Tailwind, Emmet
 - Formatters: prettier, stylua, rustfmt, zigfmt, gofmt, black, google-java-format, clang-format, php-cs-fixer
 - Plugins: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, import-cost, nvim-ts-autotag, colorizer, markdown-preview, kulala
-- Keymaps: `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Codex, `<leader>co` Opencode, `<leader>fm` format, `<leader>xx` diagnostics
+- Keymaps: `K` hover/type info, `<leader>ih` buffer inlay hints, `<leader>iH` global inlay hints, `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Codex, `<leader>co` Opencode, `<leader>fm` format, `<leader>xx` diagnostics
 
 ## Credits
 
