@@ -1,4 +1,15 @@
-# Changelog
+# MASSIVIM Changelog
+
+## v1.3.2 — 2026-07-16
+
+- update config — v1.3.2
+- Merge pull request #3 from HughScott2002/fix/reproducible-bootstrap
+- chore(gitignore): ignore .a5c tool scratch dir
+- chore(todo): add Go debugging backlog item
+- fix(treesitter): start highlighting and heal installs on 0.11
+- Merge pull request #1 from HughScott2002/main
+- docs: note Nerd Font requirement in README quick start
+- fix: self-healing bootstrap for Mason, treesitter parsers, and DAP
 
 ## Unreleased
 
