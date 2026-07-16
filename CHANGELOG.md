@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Treesitter highlighting now actually attaches: the nvim-treesitter main branch dropped the `highlight = { enable = true }` module, so a `FileType` autocmd now calls `vim.treesitter.start()` and sets the treesitter `indentexpr`.
+- Parser installs no longer crash on Neovim 0.11 (polyfill for the 0.12-only `vim.list.unique`). Added `gomod`, `gowork`, and `gosum` parsers; `jsonc` files reuse the `json` parser.
+
 ## v1.3.1 — 2026-06-27
 
 ### Fixed

@@ -20,19 +20,37 @@ return {
     opts = {
       ensure_installed = {
         "typescript", "tsx", "javascript", "css", "scss", "html",
-        "rust", "zig", "go", "python", "java", "c", "cpp",
+        "rust", "zig", "go", "gomod", "gowork", "gosum",
+        "python", "java", "c", "cpp",
         "php", "phpdoc",
-        "yaml", "json", "jsonc", "bash", "lua", "nix", "sql",
+        "yaml", "json", "bash", "lua", "nix", "sql",
         "dockerfile", "make", "cmake", "xml",
         "markdown", "markdown_inline", "toml", "gitignore",
         "graphql", "proto",
         "vim", "vimdoc", "regex",
       },
-      highlight = { enable = true },
-      indent = { enable = true },
     },
     config = function(_, opts)
+      -- The main branch targets nvim 0.12+; parser installs crash on 0.11
+      -- (NixOS stable) without vim.list.unique. Delete this polyfill once
+      -- every machine runs nvim >= 0.12.
+      if vim.fn.has "nvim-0.12" == 0 then
+        vim.list = vim.list or {}
+        vim.list.unique = vim.list.unique
+          or function(t)
+            local seen, out = {}, {}
+            for _, v in ipairs(t) do
+              if not seen[v] then
+                seen[v] = true
+                out[#out + 1] = v
+              end
+            end
+            return out
+          end
+      end
+
       require("nvim-treesitter").setup(opts)
+
       -- The main branch only installs parsers via the build hook; if that ever
       -- fails (e.g. tree-sitter CLI missing at install time), install the
       -- missing ones on startup so highlighting self-heals on both platforms.
@@ -43,6 +61,21 @@ return {
       if #missing > 0 then
         require("nvim-treesitter").install(missing)
       end
+
+      -- No dedicated jsonc parser on the main branch; reuse json
+      vim.treesitter.language.register("json", "jsonc")
+
+      -- The main branch dropped the highlight/indent modules, so
+      -- `highlight = { enable = true }` no longer does anything: highlighting
+      -- must be started per buffer.
+      vim.api.nvim_create_autocmd("FileType", {
+        group = vim.api.nvim_create_augroup("massivim.treesitter", {}),
+        callback = function(ev)
+          if pcall(vim.treesitter.start, ev.buf) then
+            vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
+      })
     end,
   },
 
