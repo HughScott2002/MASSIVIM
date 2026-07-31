@@ -379,9 +379,15 @@ return {
       "nvim-treesitter/nvim-treesitter",
     },
     config = function()
+      -- magick_rock is the LuaJIT FFI binding (faster) but needs the `magick`
+      -- luarock plus a dlopen-able libMagickWand. nixpkgs marks
+      -- lua51Packages.magick broken, so neither is guaranteed. magick_cli only
+      -- needs the imagemagick binaries, which every machine already has.
+      local processor = pcall(require, "magick") and "magick_rock" or "magick_cli"
+
       local opts = {
         backend = "kitty",
-        processor = "magick_rock",
+        processor = processor,
         integrations = {
           markdown = {
             enabled = true,
@@ -421,6 +427,13 @@ return {
           end)
           return
         end
+      end
+
+      if processor == "magick_cli" and vim.fn.executable "magick" == 0 and vim.fn.executable "convert" == 0 then
+        vim.schedule(function()
+          vim.notify("image.nvim disabled: install imagemagick (magick/convert)", vim.log.levels.WARN)
+        end)
+        return
       end
 
       require("image").setup(opts)
