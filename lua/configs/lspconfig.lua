@@ -34,6 +34,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
       buffer = args.buf,
       desc = "Toggle inlay hints in buffer",
     })
+
+    -- clangd registers :LspClangdSwitchSourceHeader on attach
+    local ft = vim.bo[args.buf].filetype
+    if ft == "c" or ft == "cpp" then
+      vim.keymap.set("n", "<leader>ch", "<cmd>LspClangdSwitchSourceHeader<cr>", {
+        buffer = args.buf,
+        desc = "Switch source/header (C/C++)",
+      })
+    end
   end,
 })
 
@@ -143,6 +152,10 @@ vim.lsp.config("emmet_ls", {
 })
 
 -- clangd: background index, clang-tidy, IWYU header insertion
+-- Language standards are NOT set here. clangd reads them per file from
+-- compile_commands.json / compile_flags.txt, with ~/.config/clangd/config.yaml
+-- as the per-language fallback for scratch files. A single -std in this
+-- config would be applied to C and C++ alike and break one of them.
 vim.lsp.config("clangd", {
   cmd = {
     "clangd",
@@ -152,6 +165,18 @@ vim.lsp.config("clangd", {
     "--completion-style=detailed",
     "--function-arg-placeholders",
     "--fallback-style=llvm",
+  },
+  root_markers = {
+    ".clangd",
+    ".clang-tidy",
+    ".clang-format",
+    "compile_commands.json",
+    "compile_flags.txt",
+    "CMakeLists.txt",
+    "Makefile",
+    "meson.build",
+    "build.ninja",
+    ".git",
   },
   init_options = {
     usePlaceholders = true,

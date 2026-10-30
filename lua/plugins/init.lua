@@ -14,6 +14,16 @@ return {
     end,
   },
 
+  -- clangd extras: AST, symbol info, memory usage, inlay hints
+  -- Same companion plugin LazyVim's lang.clangd extra uses.
+  {
+    "p00f/clangd_extensions.nvim",
+    ft = { "c", "cpp", "objc", "objcpp", "cuda" },
+    opts = {
+      inlay_hints = { inline = false },
+    },
+  },
+
   -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
@@ -299,6 +309,22 @@ return {
           stopOnEntry = false,
         },
       }
+
+      -- C/C++ use the same lldb-dap adapter
+      for _, lang in ipairs { "c", "cpp" } do
+        dap.configurations[lang] = {
+          {
+            name = "Launch file",
+            type = "lldb",
+            request = "launch",
+            program = function()
+              return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+            end,
+            cwd = "${workspaceFolder}",
+            stopOnEntry = false,
+          },
+        }
+      end
 
       -- Alternative Rust adapter if you want to switch later:
       -- CodeLLDB generally has nicer Rust visualizers, but requires installing

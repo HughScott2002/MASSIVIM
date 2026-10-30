@@ -181,6 +181,26 @@ LSP servers and formatters are defined in `configuration.nix`, so Mason stays di
 
 Run `setup.sh` once — it installs system dependencies and pre-installs plugins plus treesitter parsers. On first launch Mason auto-installs the LSPs and formatters (and keeps retrying missing ones on later launches, so tools appear once their language runtime is installed).
 
+### C / C++
+
+clangd gets its language standard from the project, not from the editor, in this order:
+
+1. `compile_commands.json` (CMake: `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON`; Meson emits it by default)
+2. `compile_flags.txt` in the project root, one flag per line
+3. otherwise `~/.config/clangd/config.yaml`, which has separate `If: PathMatch` fragments for `.c` (`gnu17`) and `.cpp`/headers (`c++23`)
+
+For a C project without a build system, drop this next to your sources:
+
+```text
+-std=gnu17
+-Wall
+-Wextra
+```
+
+That file also settles the `.h` question — clangd treats a bare header as C++ by default, so a C project should add `-xc`.
+
+Debugging uses `lldb-dap` through the existing DAP keymaps (`<leader>db`, `<leader>dc`, `<leader>du`).
+
 ## WSL2 Notes
 
 WSL2 needs a little extra setup because package availability is uneven.
@@ -251,8 +271,8 @@ Without that, MASSIVIM now disables `image.nvim` and shows a warning instead of 
 - Theme: onedark, black background
 - LSP: TS, Deno, Rust, Zig, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, C/C++, CMake, XML, Nix, PHP, C#, Tailwind, Emmet
 - Formatters: prettier, stylua, rustfmt, zigfmt, gofmt, black, google-java-format, clang-format, php-cs-fixer
-- Plugins: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, import-cost, nvim-ts-autotag, colorizer, markdown-preview, kulala
-- Keymaps: `K` hover/type info, `<leader>ih` buffer inlay hints, `<leader>iH` global inlay hints, `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Codex, `<leader>co` Opencode, `<leader>fm` format, `<leader>xx` diagnostics
+- Plugins: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, import-cost, nvim-ts-autotag, colorizer, markdown-preview, kulala, clangd_extensions
+- Keymaps: `K` hover/type info, `<leader>ih` buffer inlay hints, `<leader>iH` global inlay hints, `<leader>ch` C/C++ source/header, `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Codex, `<leader>co` Opencode, `<leader>fm` format, `<leader>xx` diagnostics
 
 ## Credits
 
