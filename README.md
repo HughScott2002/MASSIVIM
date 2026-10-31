@@ -107,15 +107,22 @@ in
     vscode-extensions.vscjava.vscode-java-debug
     vscode-extensions.vscjava.vscode-java-test
 
-    # Debugger (lldb-dap for Rust/C/C++ DAP)
+    # Debuggers (lldb-dap for Rust/C/C++, Delve for Go, debugpy for Python)
     lldb
+    delve
+    (python3.withPackages (ps: [ ps.debugpy ]))
 
-    # Formatters
+    # Formatters and linters
     stylua
-    black
     prettier
     google-java-format
     rustfmt
+    gofumpt
+    gotools # provides goimports
+    golangci-lint
+    ruff
+    nixfmt
+    statix
     unstable.zig
     unstable.go
     php84Packages.php-cs-fixer
@@ -280,8 +287,11 @@ It uses a temporary XDG config directory and never changes your live config.
 
 - Theme: onedark, black background
 - LSP: TS, Deno, Rust, Zig, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, C/C++, CMake, XML, Nix, PHP, C#, Tailwind, Emmet
-- Formatters: prettier, stylua, rustfmt, zigfmt, gofmt, black, google-java-format, clang-format, php-cs-fixer
-- Plugins: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, import-cost, nvim-ts-autotag, colorizer, markdown-preview, kulala, clangd_extensions
+- Formatters: prettier, stylua, rustfmt, zigfmt, goimports, gofumpt, ruff, nixfmt, google-java-format, clang-format, php-cs-fixer
+- Linters: golangci-lint (Go), ruff (Python), statix (Nix)
+- Debuggers: lldb-dap (Rust/C/C++), Delve (Go), debugpy (Python)
+- Tests: Neotest with Java, Go, and Python adapters
+- Plugins: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, nvim-ts-autotag, colorizer, render-markdown, markdown-preview, kulala, clangd_extensions
 - Keymaps: `K` hover/type info, `<leader>ih` buffer inlay hints, `<leader>iH` global inlay hints, `<leader>ch` C/C++ source/header, `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Codex, `<leader>co` Opencode, `<leader>fm` format, `<leader>xx` diagnostics
 
 ## Credits

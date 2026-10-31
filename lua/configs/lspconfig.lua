@@ -115,6 +115,39 @@ vim.lsp.config("lua_ls", {
   },
 })
 
+-- Go: format with gofumpt, prefer goimports, and surface staticcheck findings.
+-- These are gopls settings, so they apply on both NixOS and Mason installs.
+vim.lsp.config("gopls", {
+  settings = {
+    gopls = {
+      completeUnimported = true,
+      usePlaceholders = true,
+      gofumpt = true,
+      staticcheck = true,
+      analyses = { unusedparams = true },
+      codelenses = {
+        gc_details = false,
+        generate = true,
+        regenerate_cgo = true,
+        run_govulncheck = true,
+        test = true,
+        tidy = true,
+        upgrade_dependency = true,
+        vendor = true,
+      },
+      hints = {
+        assignVariableTypes = true,
+        compositeLiteralFields = true,
+        compositeLiteralTypes = true,
+        constantValues = true,
+        functionTypeParameters = true,
+        parameterNames = true,
+        rangeVariableTypes = true,
+      },
+    },
+  },
+})
+
 -- Rust: use clippy on save
 vim.lsp.config("rust_analyzer", {
   settings = {

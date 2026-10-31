@@ -61,6 +61,80 @@ check "JSON and YAML schemas use SchemaStore" run_assertion '
   assert(next(require("schemastore").yaml.schemas()) ~= nil, "YAML SchemaStore is empty")
 '
 
+check "declares Go workflow plugins and tooling" run_assertion '
+  vim.wait(1000)
+  vim.cmd("Lazy! load nvim-lspconfig")
+  local plugins = require("lazy.core.config").plugins
+  for _, name in ipairs { "nvim-lint", "nvim-dap-go", "neotest-golang" } do
+    assert(plugins[name], name .. " is not declared")
+  end
+
+  local gopls = vim.lsp.config.gopls.settings.gopls
+  assert(gopls.gofumpt == true, "gopls gofumpt is disabled")
+  assert(gopls.staticcheck == true, "gopls staticcheck is disabled")
+  assert(gopls.analyses and gopls.analyses.unusedparams == true, "gopls unusedparams analysis is disabled")
+
+  local formatters = require("configs.conform").formatters_by_ft.go or {}
+  assert(vim.tbl_contains(formatters, "goimports"), "Go formatter list lacks goimports")
+  assert(vim.tbl_contains(formatters, "gofumpt"), "Go formatter list lacks gofumpt")
+
+  vim.cmd("Lazy! load nvim-lint")
+  local linters = require("lint").linters_by_ft.go or {}
+  assert(vim.tbl_contains(linters, "golangcilint"), "Go linter list lacks golangcilint")
+
+  vim.cmd("Lazy! load nvim-dap-go")
+  local dap = require("dap")
+  assert(dap.adapters.go, "nvim-dap-go did not register the Go adapter")
+  assert(dap.configurations.go, "nvim-dap-go did not register Go configurations")
+'
+
+check "declares Python workflow plugins and tooling" run_assertion '
+  vim.wait(1000)
+  local plugins = require("lazy.core.config").plugins
+  for _, name in ipairs { "nvim-dap-python", "neotest-python", "venv-selector.nvim" } do
+    assert(plugins[name], name .. " is not declared")
+  end
+
+  local formatters = require("configs.conform").formatters_by_ft.python or {}
+  assert(vim.tbl_contains(formatters, "ruff_format"), "Python formatter list lacks ruff_format")
+  assert(vim.tbl_contains(formatters, "ruff_organize_imports"), "Python formatter list lacks ruff_organize_imports")
+
+  vim.cmd("Lazy! load nvim-dap-python")
+  local dap = require("dap")
+  assert(dap.adapters.python, "nvim-dap-python did not register the Python adapter")
+  assert(dap.configurations.python, "nvim-dap-python did not register Python configurations")
+
+  vim.cmd("Lazy! load neotest")
+  assert(pcall(require, "neotest-golang"), "neotest-golang is unavailable")
+  assert(pcall(require, "neotest-python"), "neotest-python is unavailable")
+  assert(vim.fn.maparg(" cv", "n") ~= "", "Python virtualenv keymap is unavailable")
+'
+
+check "declares Nix formatter and linter" run_assertion '
+  vim.wait(1000)
+  vim.cmd("Lazy! load nvim-lint")
+  local formatters = require("configs.conform").formatters_by_ft.nix or {}
+  assert(vim.tbl_contains(formatters, "nixfmt"), "Nix formatter list lacks nixfmt")
+  local linters = require("lint").linters_by_ft.nix or {}
+  assert(vim.tbl_contains(linters, "statix"), "Nix linter list lacks statix")
+'
+
+check "Go, Python, and Nix writes degrade without missing tools" run_assertion '
+  local fixtures = {
+    { name = "main.go", ft = "go", lines = { "package main", "func main() {}" } },
+    { name = "main.py", ft = "python", lines = { "def main():", "    return 1" } },
+    { name = "default.nix", ft = "nix", lines = { "{ pkgs }: pkgs.hello" } },
+  }
+
+  for _, fixture in ipairs(fixtures) do
+    local path = "'"$WORK_HOME"'/" .. fixture.name
+    vim.fn.writefile(fixture.lines, path)
+    vim.cmd("edit " .. vim.fn.fnameescape(path))
+    vim.bo.filetype = fixture.ft
+    vim.cmd("write")
+  end
+'
+
 printf 'line with markdown hard break  \n' > "$WORK_HOME/hard-break.md"
 check "safe writes preserve markdown hard breaks" run_assertion '
   vim.cmd("edit " .. vim.fn.fnameescape("'"$WORK_HOME"'/hard-break.md"))

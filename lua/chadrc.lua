@@ -53,12 +53,20 @@ M.mason = {
     "lemminx",
     "emmet-ls",
 
-    -- Formatters
+    -- Formatters and linters
     "stylua",
     "prettier",
-    "black",
     "google-java-format",
     "gofumpt",
+    "goimports",
+    "golangci-lint",
+    "ruff",
+    "nixfmt",
+    "statix",
+
+    -- Debuggers and test adapters
+    "delve",
+    "debugpy",
 
     -- WSL-only: installed via Mason on non-NixOS
     "zls",

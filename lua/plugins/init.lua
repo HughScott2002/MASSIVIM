@@ -6,6 +6,36 @@ return {
     opts = require "configs.conform",
   },
 
+  -- Linter runner. Only filetypes with tools installed are linted; missing
+  -- executables are skipped by nvim-lint instead of breaking the write.
+  {
+    "mfussenegger/nvim-lint",
+    event = { "BufReadPost", "BufNewFile" },
+    config = function()
+      local lint = require "lint"
+      lint.linters_by_ft = {
+        go = { "golangcilint" },
+        nix = { "statix" },
+        python = { "ruff" },
+      }
+
+      -- Skip linters whose executable is not installed. Without this guard a
+      -- missing golangci-lint/statix/ruff raises ENOENT from BufWritePost.
+      local function runnable(name)
+        local linter = lint.linters[name]
+        return type(linter) == "table" and type(linter.cmd) == "string" and vim.fn.executable(linter.cmd) == 1
+      end
+
+      vim.api.nvim_create_autocmd({ "BufWritePost", "InsertLeave" }, {
+        group = vim.api.nvim_create_augroup("massivim.lint", { clear = true }),
+        callback = function()
+          local names = vim.tbl_filter(runnable, lint.linters_by_ft[vim.bo.filetype] or {})
+          if #names > 0 then lint.try_lint(names) end
+        end,
+      })
+    end,
+  },
+
   -- LSP Config
   {
     "neovim/nvim-lspconfig",
@@ -334,13 +364,42 @@ return {
     end,
   },
 
-  -- Neotest (test runner) with Java adapter
+  -- Go debugging through Delve (nvim-dap-go registers the adapter/config)
+  {
+    "leoluz/nvim-dap-go",
+    ft = "go",
+    dependencies = { "mfussenegger/nvim-dap" },
+    opts = {},
+  },
+
+  -- Python debugging through debugpy
+  {
+    "mfussenegger/nvim-dap-python",
+    ft = "python",
+    dependencies = { "mfussenegger/nvim-dap" },
+    config = function()
+      require("dap-python").setup(vim.fn.exepath "python3" ~= "" and vim.fn.exepath "python3" or "python3")
+    end,
+  },
+
+  -- Python virtualenv picker; points pyright/ruff at the selected environment
+  {
+    "linux-cultist/venv-selector.nvim",
+    ft = "python",
+    dependencies = { "nvim-telescope/telescope.nvim" },
+    keys = { { "<leader>cv", "<cmd>VenvSelect<cr>", desc = "Select Python virtualenv" } },
+    opts = {},
+  },
+
+  -- Neotest (test runner) with Java, Go, and Python adapters
   {
     "nvim-neotest/neotest",
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
       "rcasia/neotest-java",
+      "fredrikaverpil/neotest-golang",
+      "nvim-neotest/neotest-python",
     },
     keys = {
       { "<leader>tn", function() require("neotest").run.run() end, desc = "Test nearest" },
@@ -353,6 +412,11 @@ return {
         adapters = {
           require("neotest-java") {
             ignore_wrapper = false,
+          },
+          require "neotest-golang",
+          require("neotest-python") {
+            dap = { justMyCode = false },
+            runner = "pytest",
           },
         },
       }
