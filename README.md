@@ -268,6 +268,16 @@ Without that, MASSIVIM now disables `image.nvim` and shows a warning instead of 
 
 ## Included
 
+## Verify configuration changes
+
+Run the headless smoke suite as the normal user after changing MASSIVIM:
+
+```bash
+tests/smoke.sh
+```
+
+It uses a temporary XDG config directory and never changes your live config.
+
 - Theme: onedark, black background
 - LSP: TS, Deno, Rust, Zig, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, C/C++, CMake, XML, Nix, PHP, C#, Tailwind, Emmet
 - Formatters: prettier, stylua, rustfmt, zigfmt, gofmt, black, google-java-format, clang-format, php-cs-fixer

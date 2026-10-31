@@ -50,10 +50,14 @@ if vim.fn.filereadable "/etc/NIXOS" == 0 then
   })
 end
 
--- Strip trailing whitespace on save
+-- Strip trailing whitespace only when a buffer explicitly opts in. Markdown
+-- uses two trailing spaces as a hard line break, and special/readonly buffers
+-- must never be rewritten by a global save hook.
 autocmd("BufWritePre", {
   pattern = "*",
+  group = vim.api.nvim_create_augroup("massivim.trim_trailing_whitespace", { clear = true }),
   callback = function()
+    if not vim.b.trim_trailing_whitespace or not vim.bo.modifiable or vim.bo.buftype ~= "" then return end
     local save_cursor = vim.fn.getpos "."
     vim.cmd [[%s/\s\+$//e]]
     vim.fn.setpos(".", save_cursor)

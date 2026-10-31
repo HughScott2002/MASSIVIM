@@ -23,10 +23,16 @@ local options = {
     php = { "php_cs_fixer" },
   },
 
-  format_on_save = {
-    timeout_ms = 1000,
-    lsp_fallback = true,
-  },
+  format_on_save = function(bufnr)
+    -- Prettier removes Markdown's two-space hard-break syntax. Keep explicit
+    -- formatting available through <leader>fm, but never alter prose on save.
+    if vim.bo[bufnr].filetype == "markdown" then return nil end
+
+    return {
+      timeout_ms = 1000,
+      lsp_fallback = true,
+    }
+  end,
 }
 
 return options

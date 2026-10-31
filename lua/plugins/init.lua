@@ -231,14 +231,6 @@ return {
     end,
   },
 
-  -- Path autocomplete (add cmp-path source)
-  {
-    "hrsh7th/nvim-cmp",
-    opts = function(_, opts)
-      table.insert(opts.sources or {}, { name = "path" })
-    end,
-  },
-
   -- Java LSP (special setup) — wires java-debug + java-test bundles for nvim-dap and neotest-java
   {
     "mfussenegger/nvim-jdtls",
@@ -347,6 +339,12 @@ return {
       "nvim-treesitter/nvim-treesitter",
       "rcasia/neotest-java",
     },
+    keys = {
+      { "<leader>tn", function() require("neotest").run.run() end, desc = "Test nearest" },
+      { "<leader>tf", function() require("neotest").run.run(vim.fn.expand "%") end, desc = "Test file" },
+      { "<leader>ts", function() require("neotest").summary.toggle() end, desc = "Test summary" },
+      { "<leader>to", function() require("neotest").output.open { enter = true } end, desc = "Test output" },
+    },
     config = function()
       require("neotest").setup {
         adapters = {
@@ -355,10 +353,6 @@ return {
           },
         },
       }
-      vim.keymap.set("n", "<leader>tn", function() require("neotest").run.run() end, { desc = "Test nearest" })
-      vim.keymap.set("n", "<leader>tf", function() require("neotest").run.run(vim.fn.expand("%")) end, { desc = "Test file" })
-      vim.keymap.set("n", "<leader>ts", function() require("neotest").summary.toggle() end, { desc = "Test summary" })
-      vim.keymap.set("n", "<leader>to", function() require("neotest").output.open { enter = true } end, { desc = "Test output" })
     end,
   },
 
