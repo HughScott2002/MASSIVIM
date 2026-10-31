@@ -2,8 +2,23 @@
 
 ## Unreleased
 
+### Added
+
+- Go: gopls gofumpt/staticcheck settings, `goimports` + `gofumpt` formatting, `golangci-lint` through nvim-lint, Delve debugging through nvim-dap-go, and `neotest-golang`.
+- Python: Ruff formatting/linting, debugpy through nvim-dap-python, `neotest-python`, and venv-selector on `<leader>cv`.
+- Nix: `nixfmt` formatting and `statix` linting.
+- Rust: Clippy-on-save settings on the current rust-analyzer schema, inlay hints, proc macros, and `<leader>ca` code actions.
+- `render-markdown.nvim` for in-buffer Markdown rendering while keeping browser preview.
+
+### Changed
+
+- Replaced the stale `norcalli/nvim-colorizer.lua` with the maintained `catgoose/nvim-colorizer.lua`.
+- Removed the archived `import-cost.nvim` plugin.
+- clangd now advertises nvim-cmp completion capabilities without setting a global language standard.
+
 ### Fixed
 
+- Missing Go, Python, or Nix linters are skipped instead of raising ENOENT from `BufWritePost` and breaking the write.
 - C files no longer inherit C++ settings. The global `~/.config/clangd/config.yaml` applied `-std=c++23` to every file, so clangd rejected `.c` files with `invalid argument '-std=c++23' not allowed with 'C'` and ran `modernize-*` C++ checks (for example "use `std::print` instead of `printf`") on C code. The config is now split into `If: PathMatch` fragments per language.
 - `lua/configs/lspconfig.lua`: clangd now declares explicit `root_markers` (`.clangd`, `.clang-tidy`, `.clang-format`, `compile_commands.json`, `compile_flags.txt`, `CMakeLists.txt`, `Makefile`, `meson.build`, `build.ninja`, `.git`) instead of inheriting defaults.
 - Treesitter highlighting now actually attaches: the nvim-treesitter main branch dropped the `highlight = { enable = true }` module, so a `FileType` autocmd now calls `vim.treesitter.start()` and sets the treesitter `indentexpr`.

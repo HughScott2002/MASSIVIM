@@ -70,8 +70,10 @@ EOF
 export FIXTURE="$WORK_HOME/rust-fixture"
 check "rust-analyzer publishes clippy diagnostics after save" run_assertion '
   if vim.fn.executable "rust-analyzer" == 0 or vim.fn.executable "cargo" == 0 then return end
+  local fixture = assert(vim.env.FIXTURE)
+  vim.cmd("cd " .. vim.fn.fnameescape(fixture))
   vim.cmd("Lazy! load nvim-lspconfig")
-  vim.cmd("edit " .. vim.fn.fnameescape(assert(vim.env.FIXTURE) .. "/src/main.rs"))
+  vim.cmd("edit " .. vim.fn.fnameescape(fixture .. "/src/main.rs"))
   local bufnr = vim.api.nvim_get_current_buf()
   assert(vim.wait(60000, function()
     return #vim.lsp.get_clients { bufnr = bufnr } > 0
@@ -118,6 +120,66 @@ check "JSON and YAML schemas use SchemaStore" run_assertion '
   assert(pcall(require, "schemastore"), "SchemaStore is unavailable")
   assert(#require("schemastore").json.schemas() > 0, "JSON SchemaStore is empty")
   assert(next(require("schemastore").yaml.schemas()) ~= nil, "YAML SchemaStore is empty")
+'
+
+check "every completion source has a provider" run_assertion '
+  vim.wait(1000)
+  vim.cmd("Lazy! load nvim-cmp")
+  local providers = {
+    nvim_lsp = "cmp_nvim_lsp",
+    luasnip = "cmp_luasnip",
+    buffer = "cmp_buffer",
+    nvim_lua = "cmp_nvim_lua",
+    async_path = "cmp_async_path",
+    path = "cmp_path",
+  }
+  local sources = require("cmp").get_config().sources
+  assert(#sources > 0, "nvim-cmp has no configured sources")
+  for _, source in ipairs(sources) do
+    local provider = providers[source.name]
+    assert(provider, "no provider is mapped for completion source " .. source.name)
+    assert(pcall(require, provider), "provider " .. provider .. " is unavailable for " .. source.name)
+  end
+'
+
+check "markdown and color plugins are maintained replacements" run_assertion '
+  vim.wait(1000)
+  local plugins = require("lazy.core.config").plugins
+  assert(not plugins["import-cost.nvim"], "archived import-cost is still declared")
+  assert(plugins["nvim-colorizer.lua"], "colorizer is not declared")
+  assert(plugins["nvim-colorizer.lua"].url:find("catgoose", 1, true), "colorizer is not the maintained catgoose fork")
+  assert(plugins["render-markdown.nvim"], "render-markdown is not declared")
+  assert(plugins["markdown-preview.nvim"], "markdown-preview was removed")
+
+  vim.cmd("Lazy! load nvim-colorizer.lua")
+  assert(pcall(require, "colorizer"), "catgoose colorizer did not load")
+
+  vim.cmd("Lazy! load render-markdown.nvim")
+  assert(pcall(require, "render-markdown"), "render-markdown did not load")
+
+  local css = "'"$WORK_HOME"'/colors.css"
+  vim.fn.writefile({ ".a { color: #ff0000; }" }, css)
+  vim.cmd("edit " .. vim.fn.fnameescape(css))
+  vim.bo.filetype = "css"
+  vim.wait(500)
+  require("colorizer").attach_to_buffer(0)
+  vim.wait(500)
+  local namespace = vim.api.nvim_get_namespaces().colorizer
+  assert(namespace, "colorizer namespace is missing")
+  assert(#vim.api.nvim_buf_get_extmarks(0, namespace, 0, -1, {}) > 0, "colorizer did not highlight a hex color")
+
+  local markdown = "'"$WORK_HOME"'/render.md"
+  vim.fn.writefile({ "# Title", "", "- item", "", "```lua", "print(1)", "```" }, markdown)
+  vim.cmd("edit " .. vim.fn.fnameescape(markdown))
+  vim.bo.filetype = "markdown"
+  vim.wait(1500)
+  local rendered = false
+  for _, id in pairs(vim.api.nvim_get_namespaces()) do
+    if #vim.api.nvim_buf_get_extmarks(0, id, 0, -1, {}) > 0 then rendered = true end
+  end
+  assert(rendered, "render-markdown produced no in-buffer rendering")
+
+  assert(vim.fn.maparg(" mp", "n") ~= "", "markdown preview mapping is unavailable")
 '
 
 check "declares Go workflow plugins and tooling" run_assertion '

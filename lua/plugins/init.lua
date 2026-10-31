@@ -143,6 +143,14 @@ return {
     opts = {},
   },
 
+  -- In-buffer Markdown rendering; browser preview stays available below
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = "markdown",
+    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+    opts = {},
+  },
+
   -- Markdown preview
   {
     "iamcco/markdown-preview.nvim",
@@ -200,15 +208,6 @@ return {
     opts = {},
   },
 
-  -- Import cost (show bundle size of JS/TS imports)
-  {
-    "barrett-ruth/import-cost.nvim",
-    -- npm is the only package manager guaranteed on both NixOS and setup.sh systems
-    build = "sh scripts/install.sh npm",
-    ft = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
-    config = function() end,
-  },
-
   -- nvim-tree: show all files including gitignored
   {
     "nvim-tree/nvim-tree.lua",
@@ -236,13 +235,18 @@ return {
     },
   },
 
-  -- CSS/Hex color preview
+  -- CSS/Hex color preview (maintained catgoose fork of norcalli's plugin)
   {
-    "norcalli/nvim-colorizer.lua",
+    "catgoose/nvim-colorizer.lua",
     event = "BufReadPost",
     opts = {
-      "css", "scss", "html", "javascript", "javascriptreact",
-      "typescript", "typescriptreact", "lua", "nix",
+      filetypes = {
+        "css", "scss", "html", "javascript", "javascriptreact",
+        "typescript", "typescriptreact", "lua", "nix",
+      },
+      options = {
+        parsers = { css = true },
+      },
     },
   },
 
