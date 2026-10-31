@@ -382,7 +382,22 @@ return {
     ft = "python",
     dependencies = { "mfussenegger/nvim-dap" },
     config = function()
-      require("dap-python").setup(vim.fn.exepath "python3" ~= "" and vim.fn.exepath "python3" or "python3")
+      local mason_adapter = vim.fn.stdpath("data") .. "/mason/bin/debugpy-adapter"
+      local adapter = vim.fn.executable(mason_adapter) == 1 and mason_adapter or vim.fn.exepath "debugpy-adapter"
+
+      if adapter == "" then
+        local python = vim.fn.exepath "python3"
+        if python ~= "" then
+          vim.fn.system { python, "-c", "import debugpy" }
+          if vim.v.shell_error == 0 then adapter = python end
+        end
+      end
+
+      if adapter ~= "" then
+        require("dap-python").setup(adapter)
+      else
+        vim.notify("debugpy is unavailable; install it with Mason or your Python environment", vim.log.levels.WARN)
+      end
     end,
   },
 

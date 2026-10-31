@@ -4,12 +4,30 @@ set -euo pipefail
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 CONFIG_HOME=$(mktemp -d)
 WORK_HOME=$(mktemp -d)
+DATA_HOME="$WORK_HOME/xdg-data"
+STATE_HOME="$WORK_HOME/xdg-state"
+CACHE_HOME="$WORK_HOME/xdg-cache"
 trap 'rm -rf "$CONFIG_HOME" "$WORK_HOME"' EXIT
-ln -s "$ROOT" "$CONFIG_HOME/nvim"
+cp -a "$ROOT" "$CONFIG_HOME/nvim"
+
+mkdir -p "$DATA_HOME/nvim" "$STATE_HOME" "$CACHE_HOME"
+cp -a "$HOME/.local/share/nvim/lazy" "$DATA_HOME/nvim/lazy"
+cp -a "$HOME/.local/share/nvim/base46" "$DATA_HOME/nvim/base46"
+cp -a "$HOME/.local/share/nvim/lazy-rocks" "$DATA_HOME/nvim/lazy-rocks"
+cp -a "$HOME/.local/share/nvim/site" "$DATA_HOME/nvim/site"
+
+# A disposable Mason-compatible debugpy adapter lets the DAP test prove that
+# nvim-dap-python uses Mason when it is available without changing the user's
+# Mason installation.
+mkdir -p "$DATA_HOME/nvim/mason/bin"
+touch "$DATA_HOME/nvim/mason/bin/debugpy-adapter"
+chmod +x "$DATA_HOME/nvim/mason/bin/debugpy-adapter"
 
 run_nvim() {
   XDG_CONFIG_HOME="$CONFIG_HOME" \
-    XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}" \
+    XDG_DATA_HOME="$DATA_HOME" \
+    XDG_STATE_HOME="$STATE_HOME" \
+    XDG_CACHE_HOME="$CACHE_HOME" \
     nvim --headless "$@"
 }
 
@@ -41,6 +59,12 @@ check() {
 }
 
 check "config loads" run_nvim '+qa!'
+
+check "smoke suite uses temporary XDG directories" run_assertion '
+  assert(vim.fn.stdpath("data") == "'"$DATA_HOME"'/nvim", "smoke suite is using shared Neovim data")
+  assert(vim.fn.stdpath("state") == "'"$STATE_HOME"'/nvim", "smoke suite is using shared Neovim state")
+  assert(vim.fn.stdpath("cache") == "'"$CACHE_HOME"'/nvim", "smoke suite is using shared Neovim cache")
+'
 
 check "rust analyzer uses valid clippy schema" run_assertion '
   vim.cmd("Lazy! load nvim-lspconfig")
@@ -111,8 +135,9 @@ check "clangd stays language-scoped with nvim-cmp capabilities" run_assertion '
 '
 
 check "neotest keymap triggers loading" run_assertion '
-  vim.wait(1000)
-  assert(vim.fn.maparg(" tn", "n") ~= "", "test-nearest keymap is unavailable")
+  assert(not package.loaded.neotest, "neotest loaded before its key was used")
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(" tn", true, false, true), "mx", false)
+  assert(vim.wait(5000, function() return package.loaded.neotest ~= nil end, 50), "test-nearest key did not load neotest")
 '
 
 check "JSON and YAML schemas use SchemaStore" run_assertion '
@@ -151,17 +176,12 @@ check "markdown and color plugins are maintained replacements" run_assertion '
   assert(plugins["render-markdown.nvim"], "render-markdown is not declared")
   assert(plugins["markdown-preview.nvim"], "markdown-preview was removed")
 
-  vim.cmd("Lazy! load nvim-colorizer.lua")
-  assert(pcall(require, "colorizer"), "catgoose colorizer did not load")
-
-  vim.cmd("Lazy! load render-markdown.nvim")
-  assert(pcall(require, "render-markdown"), "render-markdown did not load")
-
   local css = "'"$WORK_HOME"'/colors.css"
   vim.fn.writefile({ ".a { color: #ff0000; }" }, css)
   vim.cmd("edit " .. vim.fn.fnameescape(css))
   vim.bo.filetype = "css"
   vim.wait(500)
+  assert(pcall(require, "colorizer"), "opening CSS did not load catgoose colorizer")
   require("colorizer").attach_to_buffer(0)
   vim.wait(500)
   local namespace = vim.api.nvim_get_namespaces().colorizer
@@ -173,6 +193,7 @@ check "markdown and color plugins are maintained replacements" run_assertion '
   vim.cmd("edit " .. vim.fn.fnameescape(markdown))
   vim.bo.filetype = "markdown"
   vim.wait(1500)
+  assert(pcall(require, "render-markdown"), "opening Markdown did not load render-markdown")
   local rendered = false
   for _, id in pairs(vim.api.nvim_get_namespaces()) do
     if #vim.api.nvim_buf_get_extmarks(0, id, 0, -1, {}) > 0 then rendered = true end
@@ -199,11 +220,15 @@ check "declares Go workflow plugins and tooling" run_assertion '
   assert(vim.tbl_contains(formatters, "goimports"), "Go formatter list lacks goimports")
   assert(vim.tbl_contains(formatters, "gofumpt"), "Go formatter list lacks gofumpt")
 
-  vim.cmd("Lazy! load nvim-lint")
+  local go_file = "'"$WORK_HOME"'/workflow.go"
+  vim.fn.writefile({ "package main" }, go_file)
+  vim.cmd("edit " .. vim.fn.fnameescape(go_file))
+  vim.wait(500)
+  assert(package.loaded["dap-go"], "opening Go did not load nvim-dap-go")
+  assert(package.loaded.lint, "opening Go did not load nvim-lint")
   local linters = require("lint").linters_by_ft.go or {}
   assert(vim.tbl_contains(linters, "golangcilint"), "Go linter list lacks golangcilint")
 
-  vim.cmd("Lazy! load nvim-dap-go")
   local dap = require("dap")
   assert(dap.adapters.go, "nvim-dap-go did not register the Go adapter")
   assert(dap.configurations.go, "nvim-dap-go did not register Go configurations")
@@ -220,7 +245,11 @@ check "declares Python workflow plugins and tooling" run_assertion '
   assert(vim.tbl_contains(formatters, "ruff_format"), "Python formatter list lacks ruff_format")
   assert(vim.tbl_contains(formatters, "ruff_organize_imports"), "Python formatter list lacks ruff_organize_imports")
 
-  vim.cmd("Lazy! load nvim-dap-python")
+  local python_file = "'"$WORK_HOME"'/workflow.py"
+  vim.fn.writefile({ "print(1)" }, python_file)
+  vim.cmd("edit " .. vim.fn.fnameescape(python_file))
+  vim.wait(500)
+  assert(package.loaded["dap-python"], "opening Python did not load nvim-dap-python")
   local dap = require("dap")
   assert(dap.adapters.python, "nvim-dap-python did not register the Python adapter")
   assert(dap.configurations.python, "nvim-dap-python did not register Python configurations")
@@ -231,9 +260,20 @@ check "declares Python workflow plugins and tooling" run_assertion '
   assert(vim.fn.maparg(" cv", "n") ~= "", "Python virtualenv keymap is unavailable")
 '
 
+check "Python DAP prefers Mason debugpy when present" run_assertion '
+  vim.cmd("Lazy! load nvim-dap-python")
+  local adapter
+  require("dap").adapters.python(function(value) adapter = value end, { request = "launch" })
+  assert(adapter and adapter.command == "'"$DATA_HOME"'/nvim/mason/bin/debugpy-adapter", "Python DAP did not select Mason debugpy-adapter")
+'
+
 check "declares Nix formatter and linter" run_assertion '
   vim.wait(1000)
-  vim.cmd("Lazy! load nvim-lint")
+  local nix_file = "'"$WORK_HOME"'/workflow.nix"
+  vim.fn.writefile({ "{ }: 1" }, nix_file)
+  vim.cmd("edit " .. vim.fn.fnameescape(nix_file))
+  vim.wait(500)
+  assert(package.loaded.lint, "opening Nix did not load nvim-lint")
   local formatters = require("configs.conform").formatters_by_ft.nix or {}
   assert(vim.tbl_contains(formatters, "nixfmt"), "Nix formatter list lacks nixfmt")
   local linters = require("lint").linters_by_ft.nix or {}
@@ -241,6 +281,15 @@ check "declares Nix formatter and linter" run_assertion '
 '
 
 check "Go, Python, and Nix writes degrade without missing tools" run_assertion '
+  vim.cmd("Lazy! load nvim-lint")
+  local conform = require("conform")
+  local lint = require("lint")
+  for _, name in ipairs { "goimports", "gofumpt", "ruff_organize_imports", "ruff_format", "nixfmt" } do
+    conform.formatters[name] = { command = "massivim-smoke-missing-" .. name }
+  end
+  for _, name in ipairs { "golangcilint", "ruff", "statix" } do
+    lint.linters[name].cmd = "massivim-smoke-missing-" .. name
+  end
   local fixtures = {
     { name = "main.go", ft = "go", lines = { "package main", "func main() {}" } },
     { name = "main.py", ft = "python", lines = { "def main():", "    return 1" } },
