@@ -302,6 +302,19 @@ return {
     end,
   },
 
+  -- Command-line completion. Insert-mode sources stay exactly as NvChad set
+  -- them; only `:` and search cmdlines gain sources.
+  {
+    "hrsh7th/nvim-cmp",
+    dependencies = {
+      "hrsh7th/cmp-cmdline",
+      "hrsh7th/cmp-path",
+    },
+    config = function(_, opts)
+      require("configs.cmp").setup(opts)
+    end,
+  },
+
   -- DAP (debugger)
   {
     "mfussenegger/nvim-dap",

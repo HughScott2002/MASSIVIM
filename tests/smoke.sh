@@ -305,6 +305,25 @@ check "Go, Python, and Nix writes degrade without missing tools" run_assertion '
   end
 '
 
+check "command-line completion uses path, cmdline, and buffer" run_assertion '
+  vim.cmd("Lazy! load nvim-cmp")
+  local cmp_config = require("cmp.config")
+  local colon = assert(cmp_config.cmdline[":"], "no colon cmdline configuration")
+  local colon_sources = {}
+  for _, source in ipairs(colon.sources) do colon_sources[source.name] = true end
+  assert(colon_sources.path, "colon completion lacks cmp-path")
+  assert(colon_sources.cmdline, "colon completion lacks cmp-cmdline")
+
+  local search = assert(cmp_config.cmdline["/"], "no search cmdline configuration")
+  local search_sources = {}
+  for _, source in ipairs(search.sources) do search_sources[source.name] = true end
+  assert(search_sources.buffer, "search completion lacks cmp-buffer")
+
+  local plugins = require("lazy.core.config").plugins
+  assert(plugins["cmp-cmdline"], "cmp-cmdline is not declared")
+  assert(plugins["cmp-path"], "cmp-path is not declared")
+'
+
 printf 'line with markdown hard break  \n' > "$WORK_HOME/hard-break.md"
 check "safe writes preserve markdown hard breaks" run_assertion '
   vim.cmd("edit " .. vim.fn.fnameescape("'"$WORK_HOME"'/hard-break.md"))
