@@ -148,12 +148,31 @@ vim.lsp.config("gopls", {
   },
 })
 
--- Rust: use clippy on save
+-- Rust: use clippy on save and keep the settings on the current schema.
+-- checkOnSave stays a boolean; the command lives in check.command.
 vim.lsp.config("rust_analyzer", {
   settings = {
     ["rust-analyzer"] = {
+      cargo = { allFeatures = true },
       checkOnSave = true,
       check = { command = "clippy" },
+      procMacro = { enable = true },
+      inlayHints = {
+        bindingModeHints = { enable = false },
+        chainingHints = { enable = true },
+        closingBraceHints = { enable = true, minLines = 25 },
+        closureReturnTypeHints = { enable = "never" },
+        lifetimeElisionHints = { enable = "never", useParameterNames = false },
+        maxLength = 25,
+        parameterHints = { enable = true },
+        reborrowHints = { enable = "never" },
+        renderColons = true,
+        typeHints = {
+          enable = true,
+          hideClosureInitialization = false,
+          hideNamedConstructor = false,
+        },
+      },
     },
   },
 })
@@ -221,6 +240,12 @@ vim.lsp.config("clangd", {
     "meson.build",
     "build.ninja",
     ".git",
+  },
+  capabilities = {
+    offsetEncoding = { "utf-8", "utf-16" },
+    textDocument = {
+      completion = { editsNearCursor = true },
+    },
   },
   init_options = {
     usePlaceholders = true,

@@ -42,11 +42,70 @@ check() {
 
 check "config loads" run_nvim '+qa!'
 
-check "rust analyzer uses current check schema" run_assertion '
+check "rust analyzer uses valid clippy schema" run_assertion '
   vim.cmd("Lazy! load nvim-lspconfig")
   local settings = vim.lsp.config.rust_analyzer.settings["rust-analyzer"]
   assert(type(settings.checkOnSave) == "boolean", "checkOnSave must be boolean")
   assert(settings.check.command == "clippy", "check.command must be clippy")
+  assert(settings.cargo.allFeatures == true, "cargo.allFeatures is disabled")
+  assert(settings.procMacro.enable == true, "proc macro expansion is disabled")
+  assert(type(settings.inlayHints) == "table", "rust-analyzer inlay hints are missing")
+'
+
+mkdir -p "$WORK_HOME/rust-fixture/src"
+cat > "$WORK_HOME/rust-fixture/Cargo.toml" <<'EOF'
+[package]
+name = "clippy_fixture"
+version = "0.1.0"
+edition = "2021"
+EOF
+cat > "$WORK_HOME/rust-fixture/src/main.rs" <<'EOF'
+fn main() {
+    let flag = true;
+    if flag == true {
+        println!("yes");
+    }
+}
+EOF
+export FIXTURE="$WORK_HOME/rust-fixture"
+check "rust-analyzer publishes clippy diagnostics after save" run_assertion '
+  if vim.fn.executable "rust-analyzer" == 0 or vim.fn.executable "cargo" == 0 then return end
+  vim.cmd("Lazy! load nvim-lspconfig")
+  vim.cmd("edit " .. vim.fn.fnameescape(assert(vim.env.FIXTURE) .. "/src/main.rs"))
+  local bufnr = vim.api.nvim_get_current_buf()
+  assert(vim.wait(60000, function()
+    return #vim.lsp.get_clients { bufnr = bufnr } > 0
+  end, 500), "rust-analyzer did not attach")
+
+  vim.cmd("write")
+  local warned = vim.wait(90000, function()
+    for _, diagnostic in ipairs(vim.diagnostic.get(bufnr)) do
+      local message = (diagnostic.message or ""):lower()
+      local source = (diagnostic.source or ""):lower()
+      if message:find("bool", 1, true) or source:find("clippy", 1, true) then return true end
+    end
+    return false
+  end, 500)
+  assert(warned, "rust-analyzer published no clippy diagnostic after save")
+'
+unset FIXTURE
+
+check "rust code action keymap is available" run_assertion '
+  vim.wait(1000)
+  assert(vim.fn.maparg(" ca", "n") ~= "", "code action keymap is unavailable")
+'
+
+check "clangd stays language-scoped with nvim-cmp capabilities" run_assertion '
+  vim.cmd("Lazy! load nvim-lspconfig")
+  local clangd = vim.lsp.config.clangd
+  for _, arg in ipairs(clangd.cmd) do
+    assert(not arg:match("^-std="), "clangd must not pass a global -std flag")
+  end
+  assert(vim.tbl_contains(clangd.root_markers, "compile_commands.json"), "clangd root markers lack compile_commands.json")
+  assert(vim.tbl_contains(clangd.root_markers, ".clangd"), "clangd root markers lack .clangd")
+  assert(clangd.capabilities.textDocument.completion.editsNearCursor == true, "clangd completion capability is missing")
+  assert(#clangd.capabilities.offsetEncoding > 0, "clangd offset encoding is missing")
+  assert(pcall(require, "cmp_nvim_lsp"), "nvim-cmp LSP provider is unavailable")
 '
 
 check "neotest keymap triggers loading" run_assertion '

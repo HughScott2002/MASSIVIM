@@ -57,6 +57,9 @@ end, { desc = "Flash treesitter" })
 map("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", { desc = "Diagnostics (Trouble)" })
 map("n", "<leader>xd", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", { desc = "Buffer diagnostics" })
 
+-- LSP code actions
+map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
+
 -- Formatting
 map("n", "<leader>fm", function()
   require("conform").format { lsp_fallback = true }

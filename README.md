@@ -291,8 +291,9 @@ It uses a temporary XDG config directory and never changes your live config.
 - Linters: golangci-lint (Go), ruff (Python), statix (Nix)
 - Debuggers: lldb-dap (Rust/C/C++), Delve (Go), debugpy (Python)
 - Tests: Neotest with Java, Go, and Python adapters
+- Rust: rust-analyzer runs Clippy on save, `<leader>ca` applies code actions
 - Plugins: harpoon, flash, lazygit, diffview, trouble, todo-comments, rainbow brackets, image.nvim, nvim-ts-autotag, colorizer, render-markdown, markdown-preview, kulala, clangd_extensions
-- Keymaps: `K` hover/type info, `<leader>ih` buffer inlay hints, `<leader>iH` global inlay hints, `<leader>ch` C/C++ source/header, `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Codex, `<leader>co` Opencode, `<leader>fm` format, `<leader>xx` diagnostics
+- Keymaps: `K` hover/type info, `<leader>ca` code action, `<leader>ih` buffer inlay hints, `<leader>iH` global inlay hints, `<leader>ch` C/C++ source/header, `<leader>gg` lazygit, `<leader>ha` harpoon add, `s` flash jump, `<leader>cc` Codex, `<leader>co` Opencode, `<leader>fm` format, `<leader>xx` diagnostics
 
 ## Credits
 
