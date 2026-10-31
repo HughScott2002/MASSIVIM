@@ -14,6 +14,9 @@ return {
     end,
   },
 
+  -- Maintained JSON/YAML schema catalog used by their language servers.
+  { "b0o/SchemaStore.nvim", lazy = true, version = false },
+
   -- clangd extras: AST, symbol info, memory usage, inlay hints
   -- Same companion plugin LazyVim's lang.clangd extra uses.
   {

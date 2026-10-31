@@ -54,6 +54,13 @@ check "neotest keymap triggers loading" run_assertion '
   assert(vim.fn.maparg(" tn", "n") ~= "", "test-nearest keymap is unavailable")
 '
 
+check "JSON and YAML schemas use SchemaStore" run_assertion '
+  vim.cmd("Lazy! load nvim-lspconfig")
+  assert(pcall(require, "schemastore"), "SchemaStore is unavailable")
+  assert(#require("schemastore").json.schemas() > 0, "JSON SchemaStore is empty")
+  assert(next(require("schemastore").yaml.schemas()) ~= nil, "YAML SchemaStore is empty")
+'
+
 printf 'line with markdown hard break  \n' > "$WORK_HOME/hard-break.md"
 check "safe writes preserve markdown hard breaks" run_assertion '
   vim.cmd("edit " .. vim.fn.fnameescape("'"$WORK_HOME"'/hard-break.md"))

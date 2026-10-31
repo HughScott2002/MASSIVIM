@@ -127,12 +127,22 @@ vim.lsp.config("rust_analyzer", {
 
 -- YAML: schema associations
 vim.lsp.config("yamlls", {
+  before_init = function(_, config)
+    config.settings.yaml.schemas = vim.tbl_deep_extend(
+      "force",
+      config.settings.yaml.schemas or {},
+      require("schemastore").yaml.schemas()
+    )
+  end,
   settings = {
     yaml = {
       schemas = {
         ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
         ["https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json"] = "docker-compose*.yml",
       },
+      format = { enable = true },
+      validate = true,
+      schemaStore = { enable = false, url = "" },
     },
   },
 })
@@ -188,12 +198,18 @@ vim.lsp.config("clangd", {
 
 -- JSON: schema associations
 vim.lsp.config("jsonls", {
+  before_init = function(_, config)
+    config.settings.json.schemas = config.settings.json.schemas or {}
+    vim.list_extend(config.settings.json.schemas, require("schemastore").json.schemas())
+  end,
   settings = {
     json = {
       schemas = {
         { fileMatch = { "package.json" }, url = "https://json.schemastore.org/package.json" },
         { fileMatch = { "tsconfig*.json" }, url = "https://json.schemastore.org/tsconfig.json" },
       },
+      format = { enable = true },
+      validate = { enable = true },
     },
   },
 })
