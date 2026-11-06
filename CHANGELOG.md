@@ -1,4 +1,15 @@
-# Changelog
+# MASSIVIM Changelog
+
+## v1.3.2 — 2026-07-16
+
+- update config — v1.3.2
+- Merge pull request #3 from HughScott2002/fix/reproducible-bootstrap
+- chore(gitignore): ignore .a5c tool scratch dir
+- chore(todo): add Go debugging backlog item
+- fix(treesitter): start highlighting and heal installs on 0.11
+- Merge pull request #1 from HughScott2002/main
+- docs: note Nerd Font requirement in README quick start
+- fix: self-healing bootstrap for Mason, treesitter parsers, and DAP
 
 ## Unreleased
 
@@ -18,6 +29,7 @@
 
 ### Fixed
 
+- Keep `init.lua` as a portable Lua file instead of a machine-specific Nix store symlink.
 - Missing Go, Python, or Nix linters are skipped instead of raising ENOENT from `BufWritePost` and breaking the write.
 - C files no longer inherit C++ settings. The global `~/.config/clangd/config.yaml` applied `-std=c++23` to every file, so clangd rejected `.c` files with `invalid argument '-std=c++23' not allowed with 'C'` and ran `modernize-*` C++ checks (for example "use `std::print` instead of `printf`") on C code. The config is now split into `If: PathMatch` fragments per language.
 - `lua/configs/lspconfig.lua`: clangd now declares explicit `root_markers` (`.clangd`, `.clang-tidy`, `.clang-format`, `compile_commands.json`, `compile_flags.txt`, `CMakeLists.txt`, `Makefile`, `meson.build`, `build.ninja`, `.git`) instead of inheriting defaults.

@@ -15,16 +15,16 @@ NixOS users should install the package block from `README.md` before launching `
 
 ## Key Mappings
 
-| Key | Action |
-|---|---|
-| `<leader>cc` | Toggle Codex (AI coding) |
-| `<leader>co` | Toggle Opencode (AI coding) |
-| `<leader>gg` | LazyGit |
-| `<leader>fm` | Format file |
-| `<leader>xx` | Diagnostics list (Trouble) |
-| `<leader>ss` | Flash jump |
-| `s` | Flash quick jump to any visible character |
-| `jk` | Escape insert mode |
+| Key          | Action                                    |
+| ------------ | ----------------------------------------- |
+| `<leader>cc` | Toggle Codex (AI coding)                  |
+| `<leader>co` | Toggle Opencode (AI coding)               |
+| `<leader>gg` | LazyGit                                   |
+| `<leader>fm` | Format file                               |
+| `<leader>xx` | Diagnostics list (Trouble)                |
+| `<leader>ss` | Flash jump                                |
+| `s`          | Flash quick jump to any visible character |
+| `jk`         | Escape insert mode                        |
 
 See `lua/mappings.lua` for the full list.
 
