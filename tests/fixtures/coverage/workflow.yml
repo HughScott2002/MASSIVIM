@@ -1,0 +1,17 @@
+name: Test
+defaults:
+  run:
+    shell: pwsh
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - run: |
+          $name = "hello"
+          Write-Output $name
+      - shell: bash
+        run: |
+          echo "hello"
+      - shell: pwsh
+        run: |
+          Write-Output "${{ github.ref }}"

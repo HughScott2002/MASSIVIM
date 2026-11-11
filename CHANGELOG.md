@@ -13,6 +13,17 @@
 
 ## Unreleased
 
+### Language coverage remediation
+
+- Require Neovim 0.12 and native Tree-sitter CLI >=0.26.1; replace the inherited missing `TSInstallAll` hook with bounded, checked installation and explicit offline-safe maintenance.
+- Expand grammar coverage and add representative language fixtures, isolated syntax/query scans, actual LSP attachment checks, and stdio lifecycle probes.
+- Correct clangd's boolean option and use negotiated position encodings; guard empty custom snippet paths.
+- Add optional SDK/language server configuration and explicit-only formatters without expanding formatting on save.
+- Detect Metal, JSON Lines, systemd units and named templates; validate JSON Lines independently per record, without exposing source text in diagnostics.
+- Patch pinned Rust safe extern declarations and Bash single-dash tests; resolve GitHub Actions injections by explicit shell and defaults rather than interpreting PowerShell as Bash.
+- Document remaining parser/platform limits and the corrected Nix server bundle. Intentional malformed source fixtures remain unchanged.
+- Add `texlab` LSP and VimTeX config; XeLaTeX builds go to `build/` with SyncTeX.
+
 ### Added
 
 - Go: gopls gofumpt/staticcheck settings, `goimports` + `gofumpt` formatting, `golangci-lint` through nvim-lint, Delve debugging through nvim-dap-go, and `neotest-golang`.

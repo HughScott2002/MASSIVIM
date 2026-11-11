@@ -3,3 +3,6 @@ spell/
 
 # Tool scratch (babysitter runs)
 .a5c/
+
+# Python regression harness bytecode
+__pycache__/

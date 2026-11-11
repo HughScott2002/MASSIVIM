@@ -63,6 +63,7 @@ local servers = {
   "bashls",
   "clangd",
   "cmake",
+  "texlab",
   "dockerls",
   "lemminx",
   "lua_ls",
@@ -226,7 +227,7 @@ vim.lsp.config("clangd", {
     "--clang-tidy",
     "--header-insertion=iwyu",
     "--completion-style=detailed",
-    "--function-arg-placeholders",
+    "--function-arg-placeholders=true",
     "--fallback-style=llvm",
   },
   root_markers = {
@@ -242,7 +243,6 @@ vim.lsp.config("clangd", {
     ".git",
   },
   capabilities = {
-    offsetEncoding = { "utf-8", "utf-16" },
     textDocument = {
       completion = { editsNearCursor = true },
     },
@@ -271,3 +271,92 @@ vim.lsp.config("jsonls", {
     },
   },
 })
+
+-- Optional language tools are system-managed on NixOS. Missing tools get one
+-- notice on the relevant filetype, never an install attempt during startup.
+local optional = {
+  dartls = { "dart", { "dart" } },
+  astro = { "astro-ls", { "astro" } },
+  sourcekit = { "sourcekit-lsp", { "swift" } },
+  qmlls = { "qmlls", { "qml", "qmljs" } },
+  wgsl_analyzer = { "wgsl-analyzer", { "wgsl" } },
+  powershell_es = { "pwsh", { "ps1" } },
+  kotlin_language_server = { "kotlin-language-server", { "kotlin" } },
+  terraformls = { "terraform-ls", { "terraform", "terraform-vars" } },
+  glsl_analyzer = { "glsl_analyzer", { "glsl", "vert", "frag", "geom", "comp" } },
+  ruby_lsp = { "ruby-lsp", { "ruby", "eruby" } },
+  taplo = { "taplo", { "toml" } },
+  mesonlsp = { "mesonlsp", { "meson" } },
+}
+vim.lsp.config("sourcekit", {
+  filetypes = { "swift" },
+  -- Swift Foundation 6.2.4 traps converting this host's local time zone in
+  -- its logger. UTC avoids the reproduced trap without changing system time.
+  cmd_env = vim.fn.filereadable "/etc/NIXOS" == 1 and { TZ = "UTC" } or nil,
+})
+if vim.fn.filereadable "/etc/NIXOS" == 1 then
+  vim.lsp.config("ruby_lsp", {
+    cmd = function(dispatchers, config)
+      local gemfile = config.root_dir and config.root_dir .. "/Gemfile"
+      -- The packaged gems are already installed. Prevent Ruby LSP's launcher
+      -- from downloading a new composed bundle during NixOS buffer startup.
+      local environment = { BUNDLE_GEMFILE = gemfile and vim.fn.filereadable(gemfile) == 1 and gemfile or "/dev/null" }
+      return vim.lsp.rpc.start({ "ruby-lsp" }, dispatchers, { cwd = config.root_dir, env = environment })
+    end,
+  })
+end
+
+vim.lsp.config("kotlin_language_server", {
+  init_options = { storagePath = vim.fn.stdpath("cache") .. "/kotlin" },
+  before_init = function(params, config)
+    local storage = vim.fn.stdpath("cache") .. "/kotlin/" .. vim.fn.sha256(config.root_dir or "scratch")
+    vim.fn.mkdir(storage, "p")
+    -- The upstream nil storagePath becomes [] in JSON. This server requires an object.
+    config.init_options = { storagePath = storage }
+    params.initializationOptions = config.init_options
+  end,
+})
+vim.lsp.config("astro", {
+  before_init = function(params, config)
+    local candidates = { require("lspconfig.util").get_typescript_server_path(config.root_dir) }
+    local executable = vim.fn.exepath "tsserver"
+    local real = executable ~= "" and vim.uv.fs_realpath(executable)
+    if real then
+      local prefix = vim.fs.dirname(vim.fs.dirname(real))
+      candidates[#candidates + 1] = prefix .. "/lib"
+      candidates[#candidates + 1] = prefix .. "/lib/node_modules/typescript/lib"
+    end
+    for _, package in ipairs { "typescript-language-server", "astro-language-server" } do
+      candidates[#candidates + 1] = vim.fn.stdpath("data") .. "/mason/packages/" .. package .. "/node_modules/typescript/lib"
+    end
+    if vim.g.tsdk then table.insert(candidates, 1, vim.g.tsdk) end
+    for _, path in ipairs(candidates) do
+      if path ~= "" and vim.fn.filereadable(path .. "/tsserverlibrary.js") == 1 then
+        config.init_options = { typescript = { tsdk = path } }
+        params.initializationOptions = config.init_options
+        return
+      end
+    end
+    vim.notify("Astro requires TypeScript <=6 with tsserverlibrary.js; install the documented SDK or set vim.g.tsdk", vim.log.levels.ERROR)
+  end,
+})
+
+-- Use PSES's Nix wrapper; elsewhere lspconfig discovers the Mason bundle.
+if vim.fn.executable "powershell-editor-services" == 1 then
+  vim.lsp.config("powershell_es", { cmd = { "powershell-editor-services", "-Stdio", "-HostName nvim", "-HostProfileId 0", "-HostVersion 1.0.0", "-LogLevel Information", "-LogPath " .. vim.fn.stdpath("cache") .. "/powershell", "-SessionDetailsPath " .. vim.fn.stdpath("cache") .. "/powershell-session.json" } })
+else
+  local bundle = vim.fn.stdpath("data") .. "/mason/packages/powershell-editor-services"
+  if vim.fn.isdirectory(bundle .. "/PowerShellEditorServices") == 1 then
+    vim.lsp.config("powershell_es", { bundle_path = bundle })
+  end
+end
+for server, tool in pairs(optional) do
+  if vim.fn.executable(tool[1]) == 1 then
+    vim.lsp.enable(server)
+  else
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = tool[2], once = true,
+      callback = function() vim.notify("Install " .. tool[1] .. " for " .. server .. " (see language-coverage.md)", vim.log.levels.WARN) end,
+    })
+  end
+end

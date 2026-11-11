@@ -28,7 +28,7 @@ run_nvim() {
     XDG_DATA_HOME="$DATA_HOME" \
     XDG_STATE_HOME="$STATE_HOME" \
     XDG_CACHE_HOME="$CACHE_HOME" \
-    nvim --headless "$@"
+    MASSIVIM_AUDIT=1 nvim --headless --cmd "set nomodeline" "$@"
 }
 
 run_assertion() {
@@ -130,7 +130,7 @@ check "clangd stays language-scoped with nvim-cmp capabilities" run_assertion '
   assert(vim.tbl_contains(clangd.root_markers, "compile_commands.json"), "clangd root markers lack compile_commands.json")
   assert(vim.tbl_contains(clangd.root_markers, ".clangd"), "clangd root markers lack .clangd")
   assert(clangd.capabilities.textDocument.completion.editsNearCursor == true, "clangd completion capability is missing")
-  assert(#clangd.capabilities.offsetEncoding > 0, "clangd offset encoding is missing")
+  assert(vim.tbl_contains(clangd.cmd, "--function-arg-placeholders=true"), "clangd placeholder flag needs a boolean")
   assert(pcall(require, "cmp_nvim_lsp"), "nvim-cmp LSP provider is unavailable")
 '
 

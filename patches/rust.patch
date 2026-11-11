@@ -1,0 +1,10 @@
+--- a/grammar.js
++++ b/grammar.js
+@@ -463,6 +463,7 @@
+       'default',
+       'const',
+       'unsafe',
++      'safe',
+       $.extern_modifier,
+     )),
+ 

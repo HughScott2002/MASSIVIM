@@ -1,11 +1,11 @@
 # MASSIVIM
 
 [![NixOS](https://img.shields.io/badge/NixOS-ready-5277C3?logo=nixos&logoColor=white)](https://nixos.org/)
-[![Neovim](https://img.shields.io/badge/Neovim-0.11+-57A143?logo=neovim&logoColor=white)](https://neovim.io/)
+[![Neovim](https://img.shields.io/badge/Neovim-0.12+-57A143?logo=neovim&logoColor=white)](https://neovim.io/)
 [![NvChad](https://img.shields.io/badge/NvChad-v2.5-6D57A8)](https://nvchad.com/)
 [![Lua](https://img.shields.io/badge/Lua-config-2C2D72?logo=lua&logoColor=white)](https://www.lua.org/)
 
-Portable NvChad config. NixOS first. Works elsewhere with Neovim 0.11+.
+Portable NvChad config. NixOS first. Works elsewhere with Neovim 0.12+.
 
 ## Screenshot
 
@@ -47,7 +47,7 @@ Before finishing, check OS package names, Neovim version, PATH, language runtime
 
 ## Quick Start
 
-> Warning: NixOS is the main target. Non-NixOS needs Neovim 0.11+ and some runtimes outside Mason.
+> Warning: NixOS is the main target. Non-NixOS needs Neovim 0.12+ and some runtimes outside Mason.
 
 Icons need a [Nerd Font](https://www.nerdfonts.com) set in your terminal on all platforms.
 
@@ -66,7 +66,7 @@ in
 {
   environment.systemPackages = with pkgs; [
     # Neovim and plugin tools
-    neovim
+    unstable.neovim # >= 0.12
     git
     gcc
     gnumake
@@ -76,7 +76,7 @@ in
     unstable.nodejs
     unzip
     curl
-    tree-sitter
+    unstable.tree-sitter # native CLI >= 0.26.1
     jdk21_headless
     dotnet-sdk_10
 
@@ -84,9 +84,24 @@ in
     nil
     lua-language-server
     typescript-language-server
-    vscode-langservers-extracted
+    typescript # Astro TypeScript SDK <=6
+    unstable.vscode-langservers-extracted # tested complete HTML/JSON/CSS bundle
     tailwindcss-language-server
     emmet-ls
+    unstable.flutterPackages.v3_41 # includes matching Dart; tested with locked Flutter projects
+    unstable.astro-language-server
+    unstable.sourcekit-lsp
+    unstable.swift
+    unstable.qt6.qtdeclarative # qmlls
+    unstable.wgsl-analyzer
+    unstable.powershell
+    unstable.powershell-editor-services
+    unstable.kotlin-language-server
+    unstable.terraform-ls
+    unstable.glsl_analyzer
+    unstable.ruby-lsp
+    unstable.taplo
+    unstable.mesonlsp
     pyright
     gopls
     rust-analyzer
@@ -97,6 +112,7 @@ in
     sqls
     clang-tools
     cmake-language-server
+    texlab
     lemminx
     deno
     phpactor
@@ -186,7 +202,7 @@ LSP servers and formatters are defined in `configuration.nix`, so Mason stays di
 
 ### Everything Else
 
-Run `setup.sh` once — it installs system dependencies and pre-installs plugins plus treesitter parsers. On first launch Mason auto-installs the LSPs and formatters (and keeps retrying missing ones on later launches, so tools appear once their language runtime is installed).
+Run `setup.sh` once — it installs system dependencies and pre-installs plugins plus Tree-sitter parsers; failures exit nonzero. On first launch Mason auto-installs the LSPs and formatters (and keeps retrying missing ones on later launches, so tools appear once their language runtime is installed).
 
 ### C / C++
 
@@ -212,9 +228,9 @@ Debugging uses `lldb-dap` through the existing DAP keymaps (`<leader>db`, `<lead
 
 WSL2 needs a little extra setup because package availability is uneven.
 
-### 1. Install Neovim 0.11+
+### 1. Install Neovim 0.12+
 
-This config uses `vim.lsp.enable()` and `vim.lsp.config()`, which require Neovim 0.11 or newer.
+The pinned nvim-treesitter main implementation requires Neovim 0.12+ and the native tree-sitter CLI 0.26.1+ for parser installation. Older Neovim versions fail with an upgrade message.
 
 ```bash
 brew install neovim
@@ -286,7 +302,7 @@ tests/smoke.sh
 It uses a temporary XDG config directory and never changes your live config.
 
 - Theme: onedark, black background
-- LSP: TS, Deno, Rust, Zig, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, C/C++, CMake, XML, Nix, PHP, C#, Tailwind, Emmet
+- LSP: TS, Deno, Rust, Zig, Go, Python, Lua, HTML/CSS, JSON, YAML, SQL, Bash, Docker, Java, C/C++, CMake, XML, Nix, PHP, C#, Tailwind, Emmet, LaTeX
 - Formatters: prettier, stylua, rustfmt, zigfmt, goimports, gofumpt, ruff, nixfmt, google-java-format, clang-format, php-cs-fixer
 - Linters: golangci-lint (Go), ruff (Python), statix (Nix)
 - Debuggers: lldb-dap (Rust/C/C++), Delve (Go), debugpy (Python)
@@ -306,3 +322,57 @@ Upstream pieces:
 - [lazy.nvim](https://github.com/folke/lazy.nvim) for plugin management
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) for syntax and parsing
 - [image.nvim](https://github.com/3rd/image.nvim) for inline image support
+
+## Language coverage and parser maintenance
+
+See [language-coverage.md](docs/language-coverage.md) for mappings, semantic tools,
+explicit formatters, and platform/grammar limits. Neovim 0.12+ is required on
+NixOS, WSL, and other systems. Upgrade via your package manager or the official
+Neovim releases before running setup. Parser installation needs the **native**
+Tree-sitter CLI >=0.26.1, Python 3, Git, Node, a C compiler, curl and tar.
+`setup.sh` uses Homebrew's native CLI or a pinned Cargo installation into
+`~/.local`; it does not use the npm CLI wrapper. Put `~/.local/bin` on PATH.
+
+Run `:MassivimParsers` to install/update the declared list after upgrading.
+The supported build hook waits for completion and fails on any missing parser.
+Startup uses installed parsers offline and reports missing ones once; it never
+retries downloads on each launch. Parser sources are pinned by the plugin lock
+and the two small patches in `patches/`; `scripts/prepare-grammars.py` applies
+those patches in the user's cache, without modifying downloaded plugins.
+
+On NixOS, the tested channel revision was `151fa4e8ddfd` (26.11pre1086391):
+Tree-sitter 0.26.11 and vscode-langservers-extracted 1.126.04524. The latter
+fixes the missing bundled HTML/JSON/CSS chunks in stable's 1.106.27818.
+Other supported paths use Mason for the declared language tools. SDKs still
+come from their owners: Dart/Flutter SDK, Swift/SourceKit and Apple SDKs where
+needed, Qt/QML, Ruby/Bundler, Java, .NET, TeX Live (`latexmk`, XeLaTeX), and
+Rustup. LaTeX uses `texlab` plus VimTeX; `latexmk` runs XeLaTeX with SyncTeX
+and writes PDFs to `build/`, opened with `zathura` when it is installed. Actual
+WSL installation needs a WSL host to verify; Linux configuration tests alone do
+not prove it.
+
+For Rustup, keep Cargo, rustc, rustfmt, Clippy, rust-analyzer and rust-src on
+one toolchain. For example: `rustup component add rust-analyzer rust-src clippy
+rustfmt --toolchain stable`. Check `rustup show` and `rust-analyzer --version`;
+an analyzer shim falling back to a Nix analyzer is not a coherent toolchain.
+Project overrides take precedence; do not overwrite them across repositories.
+For native projects, open Neovim in the project's declared development shell:
+`nix develop -c zsh`, then `nvim`. Zsh keeps your usual prompt and completion.
+The editor does not invent global compiler flags, include paths, or SDKs.
+
+Regression checks (run as the configuration's owner):
+
+```sh
+bash tests/smoke.sh
+python3 tests/lsp-probe.py
+MASSIVIM_MANIFEST="$PWD/tests/fixtures/coverage/manifest.json" \
+MASSIVIM_OUTPUT=/tmp/massivim-coverage.json \
+  bash tests/isolated.sh '+luafile tests/coverage.lua' '+qa!'
+bash tests/isolated.sh '+luafile tests/regression.lua' '+qa!'
+```
+
+The isolated harness copies mutable plugin/parser data, disables modelines and
+installation, and gives each run separate XDG config/data/state/cache. Set
+`MASSIVIM_COLD=1` to omit parser data for an explicit cold installation check;
+set `MASSIVIM_LOG_DIR` to retain fresh state logs. The coverage scanner never
+saves source files and separates top-level errors from injected examples.

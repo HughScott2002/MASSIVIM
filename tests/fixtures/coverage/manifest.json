@@ -1,0 +1,272 @@
+[
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.dart",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.astro",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.swift",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.ps1",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.wgsl",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.m",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.mm",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.rb",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.cu",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.qml",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.jinja",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.tf",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.kt",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.cs",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.frag",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "BUILD.bazel",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "meson.build",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.rst",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.s",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.fish",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.nu",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.scm",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.lisp",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.tcl",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.pl",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.luau",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "justfile",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.jq",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.mmd",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.ftl",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.cl",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.xml",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.groovy",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.awk",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.m4",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.pas",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "BUILD.gn",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.tex",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.adoc",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.dot",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.hlsl",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.metal",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.ndjson",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "valid.jsonc",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "unsafe.rs",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "identity.sh",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.service",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.xml.in",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": ".editorconfig",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": ".gitattributes",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.desktop",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "requirements.txt",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "feature.ini",
+    "scope": "fixture"
+  },
+  {
+    "repo": "tests/fixtures/coverage",
+    "path": "workflow.yml",
+    "scope": "fixture"
+  }
+]

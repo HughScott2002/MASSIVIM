@@ -27,7 +27,7 @@ M.ui = {
   },
 }
 
-M.nvdash = { load_on_startup = true }
+M.nvdash = { load_on_startup = not vim.env.MASSIVIM_AUDIT }
 
 -- On NixOS, LSPs/formatters are system-installed; elsewhere Mason handles them
 local is_nixos = vim.fn.filereadable "/etc/NIXOS" == 1
@@ -52,6 +52,17 @@ M.mason = {
     "dockerfile-language-server",
     "lemminx",
     "emmet-ls",
+
+    "astro-language-server",
+    "wgsl-analyzer",
+    "powershell-editor-services",
+    "kotlin-language-server",
+    "terraform-ls",
+    "glsl_analyzer",
+    "ruby-lsp",
+    "taplo",
+    "mesonlsp",
+    -- Dart/Flutter SDK, Swift/SourceKit, and Qt/QML require platform SDKs.
 
     -- Formatters and linters
     "stylua",

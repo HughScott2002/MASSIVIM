@@ -1,0 +1,28 @@
+--- a/grammar.js
++++ b/grammar.js
+@@ -438,7 +438,11 @@
+ 
+     test_command: $ => seq(
+       choice(
+-        seq('[', optional(choice($._expression, $.redirected_statement)), ']'),
++        seq('[', optional(choice(
++          $._expression,
++          $.redirected_statement,
++          alias($._single_dash_test_expression, $.binary_expression),
++        )), ']'),
+         seq(
+           '[[',
+           choice(
+@@ -449,6 +453,12 @@
+         ),
+       ),
+     ),
++
++    _single_dash_test_expression: $ => prec.dynamic(10, prec(PREC.ASSIGN, seq(
++      field('left', $._expression),
++      field('operator', choice('=', '==', '!=')),
++      field('right', alias(token(prec(1, '-')), $.word)),
++    ))),
+ 
+     _test_command_binary_expression: $ => prec(PREC.ASSIGN,
+       seq(

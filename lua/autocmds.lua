@@ -32,7 +32,7 @@ autocmd("TextYankPost", {
 -- On NixOS the pkgs list is empty (tools come from configuration.nix), so this never fires there.
 -- Re-runs on every launch until everything is installed, so it also self-heals
 -- once a missing language runtime (go, python3, java, php, ...) is added.
-if vim.fn.filereadable "/etc/NIXOS" == 0 then
+if not vim.env.MASSIVIM_AUDIT and vim.fn.filereadable "/etc/NIXOS" == 0 then
   autocmd("User", {
     pattern = "VeryLazy",
     once = true,
@@ -63,3 +63,5 @@ autocmd("BufWritePre", {
     vim.fn.setpos(".", save_cursor)
   end,
 })
+
+require "configs.filetypes"

@@ -12,7 +12,7 @@ echo "=== MASSIVIM Setup ==="
 echo "Installing dependencies for non-NixOS systems..."
 echo ""
 
-require_nvim_011() {
+require_nvim_012() {
   if ! command -v nvim &>/dev/null; then
     echo "ERROR: nvim was not found after dependency installation." >&2
     exit 1
@@ -27,13 +27,13 @@ require_nvim_011() {
   minor=${minor:-0}
 
   if ! [[ "$major" =~ ^[0-9]+$ && "$minor" =~ ^[0-9]+$ ]]; then
-    echo "ERROR: MASSIVIM requires Neovim 0.11 or newer, found ${version:-unknown}." >&2
+    echo "ERROR: MASSIVIM requires Neovim 0.12 or newer, found ${version:-unknown}." >&2
     echo "Install a newer Neovim release, then rerun setup.sh." >&2
     exit 1
   fi
 
-  if [ "$major" -eq 0 ] && [ "$minor" -lt 11 ]; then
-    echo "ERROR: MASSIVIM requires Neovim 0.11 or newer, found ${version:-unknown}." >&2
+  if [ "$major" -eq 0 ] && [ "$minor" -lt 12 ]; then
+    echo "ERROR: MASSIVIM requires Neovim 0.12 or newer, found ${version:-unknown}." >&2
     echo "Install a newer Neovim release, then rerun setup.sh." >&2
     exit 1
   fi
@@ -65,7 +65,7 @@ elif command -v nix-env &>/dev/null; then
   PKG="nix"
 else
   echo "No supported package manager found. Install these manually:"
-  echo "  neovim (>= 0.11), git, gcc, make, ripgrep, fd, lazygit, nodejs, npm, unzip, curl"
+  echo "  neovim (>= 0.12), git, gcc, make, ripgrep, fd, lazygit, nodejs, npm, unzip, curl"
   echo "  luarocks, luajit, imagemagick (for image.nvim)"
   exit 1
 fi
@@ -87,8 +87,8 @@ case $PKG in
     sudo apt update
     install_pkg git gcc make ripgrep fd-find nodejs npm unzip curl luarocks imagemagick libmagickwand-dev python3 python3-venv lldb
     # apt neovim is usually too old — check version
-    if ! command -v nvim &>/dev/null || [[ "$(nvim --version | head -1 | grep -oP '\d+\.\d+')" < "0.11" ]]; then
-      echo "-> neovim >= 0.11 required. apt version is too old."
+    if ! command -v nvim &>/dev/null || [[ "$(nvim --version | head -1 | grep -oP '\d+\.\d+')" < "0.12" ]]; then
+      echo "-> neovim >= 0.12 required. apt version is too old."
       echo "   Install from: https://github.com/neovim/neovim/releases or via brew/snap"
     fi
     ;;
@@ -108,7 +108,7 @@ case $PKG in
     ;;
 esac
 
-require_nvim_011
+require_nvim_012
 ensure_fd_command
 
 # lazygit
@@ -129,15 +129,16 @@ if ! command -v lazygit &>/dev/null; then
   esac
 fi
 
-# tree-sitter CLI (required: nvim-treesitter's main branch compiles parsers with it)
-if ! command -v tree-sitter &>/dev/null; then
-  echo "-> Installing tree-sitter CLI via npm..."
-  # Only use sudo when the npm global prefix isn't user-writable (brew/nvm setups don't need it)
-  NPM_PREFIX=$(npm config get prefix 2>/dev/null || echo /usr/local)
-  if [ -w "$NPM_PREFIX/lib" ] || [ -w "$NPM_PREFIX" ]; then
-    npm install -g tree-sitter-cli
+# nvim-treesitter requires the native CLI >= 0.26.1 (not the npm wrapper).
+if ! command -v tree-sitter &>/dev/null || ! tree-sitter --version | awk '{split($2,v,"."); exit !(v[1]>0 || v[2]>26 || (v[2]==26 && v[3]>=1))}'; then
+  if [ "$PKG" = brew ]; then
+    brew install tree-sitter
+  elif command -v cargo &>/dev/null; then
+    cargo install --locked tree-sitter-cli --version 0.26.11 --root "$HOME/.local"
+    export PATH="$HOME/.local/bin:$PATH"
   else
-    sudo npm install -g tree-sitter-cli
+    echo "ERROR: install native tree-sitter CLI >= 0.26.1 with your package manager, or install Rust/Cargo and rerun setup." >&2
+    exit 1
   fi
 fi
 
@@ -163,16 +164,11 @@ else
 fi
 
 # Pre-install plugins and treesitter parsers so the first real launch is ready to go.
-# Parser compilation covers ~35 grammars and can take a few minutes.
+# Parser compilation can take several minutes.
 echo ""
 echo "-> Bootstrapping Neovim plugins and treesitter parsers (headless, may take a few minutes)..."
-if nvim --headless "+Lazy! sync" \
-  "+lua pcall(function() local p = require('lazy.core.config').plugins['nvim-treesitter'] local o = require('lazy.core.plugin').values(p, 'opts', false) require('nvim-treesitter').install(o.ensure_installed):wait(900000) end)" \
-  +qa; then
-  echo "   Plugins and parsers installed."
-else
-  echo "   Headless bootstrap failed — plugins and parsers will install on first nvim launch instead."
-fi
+nvim --headless "+Lazy! sync" "+lua local ok, err = xpcall(function() vim.cmd('Lazy! load nvim-treesitter'); vim.cmd('MassivimParsers') end, debug.traceback); if not ok then vim.api.nvim_err_writeln(err); vim.cmd('cquit 1') end" +qa
+ echo "   Plugins and declared parsers installed."
 
 echo ""
 echo "=== Runtime check ==="

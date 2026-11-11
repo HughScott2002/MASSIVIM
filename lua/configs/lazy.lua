@@ -1,6 +1,8 @@
 return {
+  checker = { enabled = false },
+  change_detection = { notify = false },
   defaults = { lazy = true },
-  install = { colorscheme = { "nvchad" } },
+  install = { missing = not vim.env.MASSIVIM_AUDIT, colorscheme = { "nvchad" } },
 
   ui = {
     icons = {
