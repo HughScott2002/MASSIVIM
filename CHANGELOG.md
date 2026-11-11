@@ -45,7 +45,7 @@
 - C files no longer inherit C++ settings. The global `~/.config/clangd/config.yaml` applied `-std=c++23` to every file, so clangd rejected `.c` files with `invalid argument '-std=c++23' not allowed with 'C'` and ran `modernize-*` C++ checks (for example "use `std::print` instead of `printf`") on C code. The config is now split into `If: PathMatch` fragments per language.
 - `lua/configs/lspconfig.lua`: clangd now declares explicit `root_markers` (`.clangd`, `.clang-tidy`, `.clang-format`, `compile_commands.json`, `compile_flags.txt`, `CMakeLists.txt`, `Makefile`, `meson.build`, `build.ninja`, `.git`) instead of inheriting defaults.
 - Treesitter highlighting now actually attaches: the nvim-treesitter main branch dropped the `highlight = { enable = true }` module, so a `FileType` autocmd now calls `vim.treesitter.start()` and sets the treesitter `indentexpr`.
-- Parser installs no longer crash on Neovim 0.11 (polyfill for the 0.12-only `vim.list.unique`). Added `gomod`, `gowork`, and `gosum` parsers; `jsonc` files reuse the `json` parser.
+- Parser installs no longer crash on Neovim 0.11. Added `gomod`, `gowork`, and `gosum` parsers; `jsonc` files use the `json5` parser.
 
 ### Added
 

@@ -247,6 +247,13 @@ vim.lsp.config("clangd", {
       completion = { editsNearCursor = true },
     },
   },
+  -- Drop lspconfig's deprecated clangd offsetEncoding extension; Neovim 0.12
+  -- negotiates position encodings through general.positionEncodings (LSP 3.17).
+  before_init = function(params)
+    if params.capabilities then
+      params.capabilities.offsetEncoding = nil
+    end
+  end,
   init_options = {
     usePlaceholders = true,
     completeUnimported = true,

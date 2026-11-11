@@ -8,7 +8,8 @@ cleanup() {
     mkdir -p "$MASSIVIM_LOG_DIR"
     cp -a "$AUDIT_HOME/state/." "$MASSIVIM_LOG_DIR/"
   fi
-  rm -rf "$AUDIT_HOME"
+  # lua_ls may still write its cache log after nvim exits; do not fail the run.
+  rm -rf "$AUDIT_HOME" 2>/dev/null || true
 }
 trap cleanup EXIT
 mkdir -p "$AUDIT_HOME/config" "$AUDIT_HOME/data/nvim" "$AUDIT_HOME/state" "$AUDIT_HOME/cache"

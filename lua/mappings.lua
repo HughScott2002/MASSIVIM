@@ -60,11 +60,6 @@ map("n", "<leader>xd", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", { des
 -- LSP code actions
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
 
--- Formatting
-map("n", "<leader>fm", function()
-  require("conform").format { lsp_fallback = true }
-end, { desc = "Format file" })
-
 map("n", "<leader>iH", function()
   vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
 end, { desc = "Toggle inlay hints globally" })
@@ -91,10 +86,6 @@ end, { desc = "Toggle Opencode" })
 map("n", "<leader>tt", function()
   require("nvchad.term").toggle { pos = "float", id = "floatTerm" }
 end, { desc = "Toggle floating terminal" })
-
-map("n", "<leader>th", function()
-  require("nvchad.term").toggle { pos = "sp", id = "hTerm" }
-end, { desc = "Toggle horizontal terminal" })
 
 -- Markdown Preview
 map("n", "<leader>mp", "<cmd>MarkdownPreviewToggle<CR>", { desc = "Toggle markdown preview" })

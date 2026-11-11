@@ -104,9 +104,12 @@ def probe(command, language, text, diagnostics=True, expect_errors=None):
                 items = published["params"].get("diagnostics")
                 assert isinstance(items, list), "Invalid diagnostics payload"
                 if expect_errors is not None:
+                    # JSONC trailing commas are severity-2 warnings (code 519),
+                    # not errors; expect_errors counts error-severity only.
+                    errors = [d for d in items if d.get("severity", 1) == 1]
                     assert (
-                        bool(items) == expect_errors
-                    ), f"Unexpected diagnostic count: {len(items)}"
+                        bool(errors) == expect_errors
+                    ), f"Unexpected error diagnostic count: {len(errors)}"
             send(dict(id=2, method="shutdown", params=None))
             reply = receive(lambda m: m.get("id") == 2)
             assert "result" in reply, reply

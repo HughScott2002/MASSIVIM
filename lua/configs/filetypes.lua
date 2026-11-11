@@ -198,12 +198,18 @@ local function validate(buf)
   end
   vim.diagnostic.set(ns, buf, errors)
 end
+local jsonl_group = vim.api.nvim_create_augroup("massivim.jsonl", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
+  group = jsonl_group,
   pattern = "jsonl",
   callback = function(ev)
     vim.bo[ev.buf].syntax = "json"
     validate(ev.buf)
+    -- Re-firing FileType must replace this buffer's validation autocmds, not
+    -- stack them. A per-buffer group clears only this buffer's prior autocmds.
+    local buf_group = vim.api.nvim_create_augroup("massivim.jsonl." .. ev.buf, { clear = true })
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufWritePost" }, {
+      group = buf_group,
       buffer = ev.buf,
       callback = function()
         validate(ev.buf)

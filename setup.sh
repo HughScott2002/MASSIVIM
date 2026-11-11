@@ -168,7 +168,7 @@ fi
 echo ""
 echo "-> Bootstrapping Neovim plugins and treesitter parsers (headless, may take a few minutes)..."
 nvim --headless "+Lazy! sync" "+lua local ok, err = xpcall(function() vim.cmd('Lazy! load nvim-treesitter'); vim.cmd('MassivimParsers') end, debug.traceback); if not ok then vim.api.nvim_err_writeln(err); vim.cmd('cquit 1') end" +qa
- echo "   Plugins and declared parsers installed."
+echo "   Plugins and declared parsers installed."
 
 echo ""
 echo "=== Runtime check ==="
